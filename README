@@ -14,7 +14,18 @@ instructions for updating. ???
 cd repos
 touch fname
 git add fname
+
+
+git add *
 git commit -m 'message here'
+git push -u origin master
+
+
+-------------------------
+
+one-time code per repository ???
+git remote add origin git@github.com:cary-miller/hello-world.git
+follows first commit.
 
 
 
