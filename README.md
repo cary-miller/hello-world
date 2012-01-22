@@ -28,6 +28,7 @@ With your API key saved in the `fred_api_key` file:
 ### Methods
 
 * `category` -- Get economic data for a specific category.
+
     >>> Fred().category(category_id=120)
 
 
@@ -35,6 +36,7 @@ With your API key saved in the `fred_api_key` file:
 * `releases` -- Get all releases of economic data.
 
     >>> Fred().releases(limit=10)
+
     >>> Fred().releases('dates', xml_output=True)
 
 
