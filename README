@@ -5,5 +5,16 @@ hello this is the readme file.
 committing it.
 
 
+-----------------------------
+instructions for updating. ???
+
+
+& adding new file. ??
+
+cd repos
+touch fname
+git add fname
+git commit -m 'message here'
+
 
 
