@@ -1,8 +1,13 @@
-Fred
-====
+World Bank
+================
 
-Python wrapper of the St. Louis Federal Reserve Bank's [FRED API web
-service](http://api.stlouisfed.org/docs/fred/) for retrieving economic data.
+
+Python wrapper of the  World Bank 
+[data API](http://data.worldbank.org/developers).  
+Based on the [Fred API](https://github.com/zachwill/fred) of Zach Williams.
+
+
+
 
 FRED API Documentation:
 [http://api.stlouisfed.org/docs/fred/](http://api.stlouisfed.org/docs/fred/)
