@@ -123,4 +123,49 @@ def factorial(n, acc=1):
 
 
 
+# Mertz has fascinating stuff on decorators and metaclasses.
+# Including this hw assignment.
+
+def propagate_iter(fn, it):
+    # iteratively apply fn(x) for x in it.
+    while 1:
+        yield fn(it.next())
+
+def elementwise(fn):
+    def newfn(arg):
+        if hasattr(arg, 'next'): # iterator/generator
+            return propagate_iter(fn, arg)
+        try:
+            if hasattr(arg, '__getitem__'): # sequence
+                return type(arg)(map(fn, arg))
+        except TypeError:   # xrange is neither seq nor iter nor gen.
+                return map(fn, arg)
+        return fn(arg)
+    return newfn
+
+@elementwise
+def sq(x):
+    return x**2
+
+@elementwise
+def sub(x):
+    return add(x,-4)
+
+def add(x, n):
+    return x+n
+
+
+if 1:
+    sq(3)        # int
+    sq(range(5)) # list
+    sq(ob for ob in range(5)) # generator
+    sq(xrange(5)) # neither fish nor fowl
+
+    g = (ob for ob in range(5)) # generator
+    pi = propagate_iter(sq, g)
+    pc = propagate_iter(sub, pi)
+    pc = propagate_iter(sub, propagate_iter(sq, g))
+    pc = sub(sq(g))
+    # All pc's give the same result
+
 
