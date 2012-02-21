@@ -1,3 +1,5 @@
+
+
 def coroutine(func):
     def start(*args,**kwargs):
         cr = func(*args,**kwargs)
@@ -23,110 +25,24 @@ def grep(pattern):
 # Example use
 if __name__ == '__main__':
     g = grep("python")
-    h = grep("hemp")
+    h = grep("yemp")
     g.send("Yeah, but no, but yeah, but no\n")
     g.send("A series of tubes\n")
     g.send("python generators rock!\n")
     x = g.send("python generators rock!\n")
-    y = h.send("hemp generators rock!")
-    x = g.send("python hemp rock!")
+    y = h.send("yemp generators rock!")
+    x = g.send("python yemp rock!")
     g.close()
 
     
-from deco_global import *
-
-def primes(max_p):
-    # Find all primes <= max_p
-    prms = []
-    candidates = range(2, max_p+1)
-    while candidates:
-        candidates.reverse()
-        nextp = candidates.pop()
-        prms.append(nextp)
-        to_remove = range(nextp, max_p+1, nextp)
-        candidates = sorted(list(set(candidates).difference(to_remove)))
-    return sorted(prms)
-
-
-
-def gprimes(max_p):
-    # Generator to return all primes <= max_p.
-    # Find all primes <= max_p
-    # Start with everything being a candidate for primehood.
-    # When we find a prime remove it and all of its multiples from the
-    # candidate list.
-    candidates = range(2, max_p+1)
-    while candidates:
-        nextp = candidates[0]
-        yield nextp
-        to_remove = range(nextp, max_p+1, nextp) # prime and all multiples.
-        candidates = sorted(list(set(candidates).difference(to_remove)))
-
-
-
-
-def is_prime(n):
-    return len(factors(n)) == 1
-
-@memoize_(timeout=30)
-def factors(n):
-    if n in primes(n): return [n]
-    maxf = n/2  # max possible factor
-    prms = primes(maxf)
-    f = []
-    while n>1:
-        for p in prms:
-            if n%p == 0:
-                f.append(p)
-                n = n/p
-            else:
-                prms.remove(p)
-    return sorted(f)
-
-
-def lcf(a,b):
-    # largest common factor
-    fa = set(factors(a))
-    fb = set(factors(b))
-    i = fa.intersection(fb)
-    # For each factor in the intersection, i, we must include it the
-    # number of times it is in common between the two.
-
-    
-    # No
-...     return product(list(i))
-
-
-
-
-def smallest_common_multiple(a,b):
-    # remove largest common factor
-
-    return product(list(set(factors(a*b))))
-    # Better but still wrong.
-    '''
-    >>> scm(10, 15)
-    30
-    >>> scm(10, 75)
-    30
-    '''
-
-    return (a*b)/lcf(a,b)   # correct.  now define lcf.
-
-
-
-import operator
-def product(lst):
-    # similar to builtin sum.
-    return reduce(operator.mul, lst)
-
-
+import sys
 import time
+from deco_global import _memoize
+
+
 # For popping into Fred code.
 def auto_update(ugly, time_limit=60*60):
-    t0 = time.time()
-    blah = ugly()
-    yield blah
+    t0 = 0
     while True:
         if time.time()-t0 > time_limit:
             blah = ugly()
@@ -143,11 +59,7 @@ timeout parameter to memoize.
 BAM!  Done.  And very slick too.
 '''        
 
-@memoize_(timeout=60*60*24)  # daily refresh
-def f(n):
-    return factors(n)
 
-import sys
 
 # coroutine to produce intermittent output to logfile.
 # Have it read some file every few seconds/minutes, read a random line,
@@ -186,23 +98,23 @@ def log_sim(sink=sys.stdout):
 #
 
 
-# a class with a write method for simulating a file open for writing.
+# A class with a write method for simulating a file open for writing.
 # Could be useful in a pipeline?  Is possible to do same with attaching a
 # write method to a function?  Of course.  How about a function that
 # attaches a write method to itself?
 
-class Foo(object):
+class Fileish(object):
     '''
     A file-like object,  with read/write methods.
     The write method is for writing TO this object.  Backwards from how I
     usually think of read/write but totally makes sense to a user.
 
     REDIRECTING sys.stdout WRITES TO THIS OBJECT.
-    f = Foo()
-    sys.stdout = f
-    print 'yoohoo'
-    sys.stdout = sys.__stdout__
-    f.read()
+    >>> f = Fileish()
+    >>> sys.stdout = f
+    >>> print 'yoohoo'
+    >>> sys.stdout = sys.__stdout__
+    >>> f.read()
     yoohoo
     '''
     def __init__(self):
@@ -225,7 +137,7 @@ class Foo(object):
 
 
 
-f = Foo()
+f = Fileish()
 f.write('hello\n')
 f.write('there\n')
 print f.read()
