@@ -1,24 +1,17 @@
 import datetime
 import time
-# hi
 
 
 
 def add_months(dt, n):
     '''Add n months to datetime (or subclass), dt.
     '''
-    # Two issues
-        # Modular month arithmetic.
-        # Year turnovers.
     t = type(dt)  # This is slick.  It means that the type of dt is the
-    # type that is returned.  It means this works seamlessly with
+    # type that is returned,  meaning this works seamlessly with
     # subclasses of datetime.
     new_month = (dt.month-1+n)%12+1
     delta_year = int((dt.month-1+n)/12)
     return t(dt.year+delta_year, new_month, dt.day)
-
-    # original return value
-    return datetime.datetime(dt.year+delta_year, new_month, dt.day)
 
 
 
@@ -49,22 +42,20 @@ class my_dt(datetime.datetime):
         return last_day_of_month(self)
         
 
-dt = datetime.datetime.today()
-d1 = add_months(dt, -2)   # datetime
+if 0:
+    dt = datetime.datetime.today()
+    d1 = add_months(dt, -2)   # datetime
 
+    dt = my_dt.today()
+    d2 = dt.monthdelta(-2)    # my_dt
+    d3 = add_months(dt, -2)   # my_dt 
+    d4 = dt.add_months(-2)    # my_dt 
 
-dt = my_dt.today()
-d2 = dt.monthdelta(-2)    # my_dt
-d3 = add_months(dt, -2)   # my_dt 
-d4 = dt.add_months(-2)    # my_dt 
+    m1 = d3.add_months(-3).last_day_of_month()
+    m2 = last_day_of_month(add_months(d3,-3))
+    assert m1 == m2
 
-m1 = d3.add_months(-3).last_day_of_month()
-m2 = last_day_of_month(add_months(d3,-3))
-assert m1 == m2
-
-
-
-d5 = d2 + datetime.timedelta(44)   # datetime
+    d5 = d2 + datetime.timedelta(44)   # datetime
 
 
 
