@@ -2,27 +2,13 @@ World Bank
 ================
 
 
-Python wrapper of the  World Bank 
-[data API](http://data.worldbank.org/developers).  
-Based on the [Fred API](https://github.com/zachwill/fred) of Zach Williams.
-
-
-
-
-FRED API Documentation:
-[http://api.stlouisfed.org/docs/fred/](http://api.stlouisfed.org/docs/fred/)
-
-Sign up for a FRED API key:
-[http://api.stlouisfed.org/api_key.html](http://api.stlouisfed.org/api_key.html)
+Python wrapper for the  [World Bank data API](http://data.worldbank.org/developers).  Based on the [Fred API](https://github.com/zachwill/fred) of Zach Williams.
+Also [lightcatcher](http://data.worldbank.org/developers)
+The World Bank no longer requires an API key.
 
 
 Usage
 -----
-
-Without your API key saved in the `fred_api_key.py` file:
-
-    >>> from fred import Fred
-    >>> Fred('my_api_key').category(category_id=125)
 
 With your API key saved in the `fred_api_key` file:
 
