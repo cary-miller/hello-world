@@ -1,3 +1,12 @@
+'''
+Read excel files.
+xlrd is quite good but it is old and fails to read xlsx files.
+xlsrd supposedly reads them but it is not available via pip so I'm not
+taking the trouble to track it down further.
+openpyxl is even better than xlrd and reads xlsx.
+'''
+
+
 
 import xlrd
 #import xlsxrd  # supposedly reads xlsx but not available via pip.
