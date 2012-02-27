@@ -1,10 +1,16 @@
 
-from deco_global import memoize_
+from decorators import memoize_
+from functional import (elementwise, flatten,
+    propagate_iter)
+
 
 import operator
 
 def product(lst):
-    # similar to builtin sum.
+    '''similar to builtin sum.
+    >>> product([1, 2, 3])
+    6
+    '''
     return reduce(operator.mul, lst)
 
 
@@ -60,6 +66,8 @@ def factors(n):
                 prms.remove(p)
     return sorted(f)
 
+
+# TODO not really a math function.
 @memoize_(timeout=60*60*24)
 def reps(seq):
     '''For each item in set(seq) count the number of occurences.
@@ -122,26 +130,6 @@ def factorial(n, acc=1):
     return factorial(n-1, n*acc)
 
 
-
-# Mertz has fascinating stuff on decorators and metaclasses.
-# Including this hw assignment.
-
-def propagate_iter(fn, it):
-    # iteratively apply fn(x) for x in it.
-    while 1:
-        yield fn(it.next())
-
-def elementwise(fn):
-    def newfn(arg):
-        if hasattr(arg, 'next'): # iterator/generator
-            return propagate_iter(fn, arg)
-        try:
-            if hasattr(arg, '__getitem__'): # sequence
-                return type(arg)(map(fn, arg))
-        except TypeError:   # xrange is neither seq nor iter nor gen.
-                return map(fn, arg)
-        return fn(arg)
-    return newfn
 
 @elementwise
 def sq(x):
