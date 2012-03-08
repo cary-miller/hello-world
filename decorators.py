@@ -8,17 +8,14 @@ import functools
 
 
 
-
-# The benefit of decorator shows up when you start looking at
-# func.__name__ and such.  Or is that really a benefit?  One could spend
-# lots of time tracking a bug that turns out to be in the decorator.
-# LESSON:  be judicious with decorators.
-
 import decorator
-
 # Decorator module makes possible to define decorators with
 # less nesting.  Also preserves undecorated params.
 
+
+# The benefit of decorator shows up when you start looking at
+# func.__name__ and such.  Or is that really a benefit?  One could waste
+# lots of time tracking a bug that turns out to be in the decorator.
 
 
 
@@ -36,7 +33,7 @@ def memoize(f):
 
 
 # Enhanced memoize!  Adds a timeout to each key.
-def memoize_(timeout=60*60):
+def memoize_(timeout=60*60*24):
     def memo(func):
         func.cache = {}
         @functools.wraps(func)
@@ -59,6 +56,25 @@ def memoize_(timeout=60*60):
 # functools.
 
 
-
+# Yet another memoize!  Delete any key older than timeout.
+def memoize_(timeout=60*60*24):
+    def memo(func):
+        func.cache = {}
+        @functools.wraps(func)
+        def _memo(*args, **kw):
+            # The entire set of args and kw is the key.
+            # frozenset to ensure hashability
+            key = frozenset(args), frozenset(kw.items())
+            cache = func.cache
+            for key in cache.keys():
+                if time.time()-cache[key]['time'] > timeout:
+                    del cache[key]
+            if not key in cache:
+                result = func(*args, **kw)
+                cache[key] = dict(value=result, time=time.time())
+            return cache[key]['value']
+        return _memo
+    return memo
+#
 
 
