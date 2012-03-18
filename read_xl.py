@@ -31,16 +31,23 @@ head = data[0]
 data = data[1:]
 
 
+
 def stringify(thing):
     if thing is None: return '-'                     # None
     if type(thing) == str: return thing         # string
-    if type(thing) == int: return unicode(thing) # int
+    if type(thing) == int: return str(thing) # int
     return thing
 
-def delimited(data, row_delim='\n', col_delim='\t', 
-    cell_func=lambda x:x, row_func=lambda x:x):
-    return '\n'.join(['\t'.join(row_func(
-        [cell_func(col) for col in row])) for row in data])
+
+
+def delimited(data, 
+    row_delim='\n', 
+    col_delim='\t', 
+    cell_func=lambda x:x, 
+    row_func=lambda x:x):
+    return row_delim.join([col_delim.join(row_func(
+        cell_func(col) for col in row)) for row in data])
+
 
 s = '\n'.join(['\t'.join([stringify(v) for v in row]) for row in data])
 t = delimited(data, cell_func=stringify)

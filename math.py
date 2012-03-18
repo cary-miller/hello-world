@@ -4,7 +4,9 @@ from functional import (elementwise, flatten,
     propagate_iter)
 
 
+import numpy
 import operator
+from e_ast import globalize, globalizeA
 
 def product(lst):
     '''similar to builtin sum.
@@ -17,7 +19,8 @@ def product(lst):
 
 
 
-@memoize_(timeout=60*60*24)  # daily refresh
+#@memoize_(timeout=60*60*24)  # daily refresh
+@globalize
 def primes(max_p):
     # Find all primes <= max_p
     prms = []
@@ -32,11 +35,11 @@ def primes(max_p):
 
 
 
+#@globalizeA
 def gprimes(max_p):
     # Generator to return all primes <= max_p.
-    # Find all primes <= max_p
     # Start with everything being a candidate for primehood.
-    # When we find a prime remove it and all of its multiples from the
+    # When we find a prime remove it and all its multiples from the
     # candidate list.
     candidates = range(2, max_p+1)
     while candidates:
@@ -115,6 +118,11 @@ def smallest_common_multiple(a,b):
     return (a*b)/lcf(a,b)
 
 
+def factorial(n):
+    assert type(n) == int and n >= 0
+    if n==0: return 1
+    return product(range(1,n+1))
+
 
 def factorial(n):
     assert type(n) == int and n >= 0
@@ -124,36 +132,46 @@ def factorial(n):
 # tail recursive factorial.
 # tail recursive means the recursive call refers ONLY to the function.
 
+@memoize_(60*5)
 def factorial(n, acc=1):
     assert type(n) == int and n >= 0
     if n==0: return acc
     return factorial(n-1, n*acc)
 
 
-
-@elementwise
-def sq(x):
-    return x**2
-
-@elementwise
-def sub(x):
-    return add(x,-4)
-
-def add(x, n):
-    return x+n
+def is_numeric(x):
+    try:
+        blah = float(x)
+        return True
+    except ValueError: return False
+    except TypeError: return False
 
 
-if 1:
-    sq(3)        # int
-    sq(range(5)) # list
-    sq(ob for ob in range(5)) # generator
-    sq(xrange(5)) # neither fish nor fowl
+def avg(seq): return sum(seq) / (len(seq) or numpy.inf)
+def avg_nonzero(seq): return avg(x for x in seq if x!=0)
+def avg_nonNone(seq): return avg(x for x in seq if x)
+def avg_nznn(seq): return avg(x for x in seq if x and x!=0)
 
-    g = (ob for ob in range(5)) # generator
-    pi = propagate_iter(sq, g)
-    pc = propagate_iter(sub, pi)
-    pc = propagate_iter(sub, propagate_iter(sq, g))
-    pc = sub(sq(g))
-    # All pc's give the same result
 
+
+def test_elementwise():
+    try:
+        sq = elementwise(lambda x:x**2)
+        sub = elementwise(lambda x: add(x,-4))
+        def add(x, n): return x+n
+
+
+        sq(3)        # int
+        sq(range(5)) # list
+        sq(ob for ob in range(5)) # generator
+        sq(xrange(5)) # neither fish nor fowl
+
+        g = (ob for ob in range(5)) # generator
+        pi = propagate_iter(sq, g)
+        pc = propagate_iter(sub, pi)
+        pc = propagate_iter(sub, propagate_iter(sq, g))
+        pc = sub(sq(g))
+        # All pc's give the same result
+    finally:
+        globals().update(locals())
 

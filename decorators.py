@@ -56,25 +56,42 @@ def memoize_(timeout=60*60*24):
 # functools.
 
 
+memo_cache = {}
 # Yet another memoize!  Delete any key older than timeout.
+# And use a global cache.
 def memoize_(timeout=60*60*24):
     def memo(func):
-        func.cache = {}
+#        func.cache = {}
         @functools.wraps(func)
         def _memo(*args, **kw):
             # The entire set of args and kw is the key.
             # frozenset to ensure hashability
-            key = frozenset(args), frozenset(kw.items())
-            cache = func.cache
+            key = func.func_name + str(args) + str(kw.items())
+            key = func.func_name , str(args) , frozenset(kw.items())
+#            cache = func.cache
+            cache = memo_cache
             for key in cache.keys():
                 if time.time()-cache[key]['time'] > timeout:
                     del cache[key]
-            if not key in cache:
+            if not key in cache.keys():
                 result = func(*args, **kw)
                 cache[key] = dict(value=result, time=time.time())
             return cache[key]['value']
         return _memo
     return memo
 #
+
+
+frozenset([])
+lst = ['a', 123, range(3)]
+frozenset([])
+
+
+# How to execute consecutive commands from history.  with arrow keys.
+# http://unix.stackexchange.com/questions/24739/how-to-execute-consecutive-command-from-history
+
+
+
+
 
 

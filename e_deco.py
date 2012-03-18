@@ -125,7 +125,7 @@ def trace(f, *args, **kw):
 
 
 @trace
-def j(*args, **kw):
+def write(*args, **kw):
     x=22
     return 44
 
