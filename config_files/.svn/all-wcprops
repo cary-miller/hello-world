@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 24
+/!svn/ver/7/config_files
+END
+vimrc
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/!svn/ver/9/config_files/vimrc
+END
+pythonrc
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/!svn/ver/11/config_files/pythonrc
+END
+bash_profile
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/!svn/ver/11/config_files/bash_profile
+END
