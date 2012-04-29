@@ -11,21 +11,36 @@
 #    . ~/.bash_aliases
 #fi
 
-# some more ls aliases
+# ls aliases
 alias la='ls -A'
-alias l='ls -CF'
+alias l='ls -CF'   # for non-color terminal.
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l . --color=auto'
+alias ls='ls  --color=auto'
 
-#alias python='python -c $HOME/.pythonrc -i'
-#alias python='python -i $HOME/.pythonrc.py'  #YES
-#PYTHONSTARTUP=$HOME/.pythonrc.py  NO
-alias pydocfile='/usr/bin/env python -m doctest' # followed by filename
-alias l.='ls -d .* --color=tty'
-alias ll='ls -l .  --color=tty'  #auto newer than tty
-alias ll='ls -l . --color=auto'  #auto newer than tty
+alias dir='dir --color=auto'
+alias vdir='vdir --color=auto'
+
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+alias tac='perl -e "print reverse <>"'
 alias wcl='wc -l'
+
 alias emacs='emacs --no-window-system'
 alias vimpy='vim +TlistOpen'
-alias tac='perl -e "print reverse <>"'
+
+alias mysqlstart='sudo /opt/local/lib/mysql55/bin/mysqld_safe &'
+alias mysqlstart='sudo -b /opt/local/lib/mysql55/bin/mysqld_safe'
+alias mysqlstop='/opt/local/lib/mysql55/bin/mysqladmin -u root -p shutdown'
+alias mysql='/opt/local/lib/mysql55/bin/mysql'
+
+alias python='python -i $HOME/.pythonrc.py'
+alias python='python2.7 -i $HOME/.pythonrc.py'
+alias pydocfile='/usr/bin/env python -m doctest' # followed by filename
+
+
 
 alias foo="ps aux |head -1; ps aux |grep $1"
 alias pidof="pidof"
@@ -34,6 +49,13 @@ grepTwo(){
     # Extract lines that have EITHER $1 OR $2
     perl -e "print (grep /$1/ || /$2/, <>)"
 }
+
+PATH=.:$PATH
+HISTFILESIZE=5000
+EDITOR=vim
+
+webfaction=74.54.46.146
+my_url=71.229.147.198
 
 
 
@@ -56,15 +78,9 @@ if [ `echo $OSTYPE | cut -c1-6` == 'darwin'  ]; then
 fi
 
 
-PATH=.:$PATH
-HISTFILESIZE=5000
-EDITOR=vim
-webfaction=74.54.46.146
-my_url=71.229.147.198
-
 
 if [ `echo $OSTYPE | cut -c1-6` != 'darwin'  ]; then
-	echo running on darwin / mac
+	echo NOT running on darwin / mac
 
     # If not running interactively, don't do anything
     [ -z "$PS1" ] && return
