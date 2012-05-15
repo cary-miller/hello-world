@@ -1,4 +1,7 @@
-# Lattice plots for World Bank energy data.
+# Plots for World Bank energy data.
+# Comparing same plots in Lattice and GGplot2.
+
+
 library(lattice)
 library(latticeExtra)
 #library(rjson)
