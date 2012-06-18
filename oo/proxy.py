@@ -28,7 +28,9 @@ def test_proxy():
     try:
         from cStringIO import StringIO
         op = Proxy(StringIO())
-        op.write('hello') assert op.blah == 'blah' op.seek(0)
+        op.write('hello') 
+        assert op.blah == 'blah' 
+        op.seek(0)
         assert op.read() == 'hello'
     finally: globals().update(locals())
 
