@@ -29,9 +29,9 @@ def test_proxy():
         from cStringIO import StringIO
         op = Proxy(StringIO())
         op.write('hello') 
-        assert op.blah == 'blah' 
         op.seek(0)
-        assert op.read() == 'hello'
+        assert op.read() == 'hello' # Behaves as a file object.
+        assert op.blah == 'blah' # Also has new attributes.
     finally: globals().update(locals())
 
 
