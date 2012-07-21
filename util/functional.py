@@ -4,6 +4,95 @@ Functional programming code.  Includes plenty of decorators.
 '''
 
 
+# Functional code lifted from Mertz's Text Processing book
+from operator import mul, add, truth
+#apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
+bools = lambda lst: map(truth, lst)
+bool_each = lambda fns, args=[] : bools(apply_each(fns, args))
+conjoin = lambda fns, args=[]: reduce(mul, bool_each(fns, args))
+all_ = lambda fns: lambda arg, fns: conjoin(fns, (arg,))
+both = lambda f,g: all_((f,g))
+all3 = lambda f,g,h: all_((f,g,h)) 
+and_ = lambda f,g: lambda x, f=f, g=g: f(x) and g(x)
+disjoin = lambda fns, args=[]: reduce(add, bool_each(fns, args))
+some = lambda fns: lambda arg, fns=fns: disjoin(fns, (arg,))
+either = lambda f,g: some((f,g))
+anyof3 = lambda f,g,h: some((f,g,h)) 
+#compose = lambda f,g: lambda x, f=f, g=g: f(g(x))
+ident = lambda x: x
+
+
+
+# Modernized versions
+ident = lambda x: x
+compose = lambda f,g: lambda x: f(g(x))
+bools = lambda lst: [bool(ob) for ob in lst]
+
+# Functions that apply identical args to a list of functions.
+apply_each = lambda fns, *pos, **kw: [fn(*pos, **kw) for fn in fns]
+bool_each = lambda fns,  *pos, **kw: bools(apply_each(fns, *pos, **kw))
+all_true = lambda fns,   *pos, **kw: all(bool_each(fns,  *pos, **kw))
+any_true = lambda fns,   *pos, **kw: any(bool_each(fns,  *pos, **kw))
+
+and_ = lambda *funcs: lambda *pos, **kw: all(f(*pos, **kw) for f in funcs)
+or_ = lambda *funcs: lambda *pos, **kw: any(f(*pos, **kw) for f in funcs)
+
+
+def t(): return True
+def f(): return False
+assert and_(t,t,t)() == True
+assert and_(t,t,f)() == False
+assert or_(t,t,f)() == True
+assert or_(f,f,f)() == False
+
+def t(x,y): return True
+def f(x,y): return False
+assert and_(t,t,t)(0,1) == True
+assert and_(t,t,f)(0,1) == False
+assert or_(t,t,f)(0,1) == True
+assert or_(f,f,f)(0,1) == False
+
+def t(x,y, a,b): return True
+def f(x,y, a,b): return False
+assert and_(t,t,t)(0,1,a='',b=2) == True
+assert and_(t,t,f)(0,1,a='',b=2) == False
+assert or_(t,t,f)(0,1,a='',b=2) == True
+assert or_(f,f,f)(0,1,a='',b=2) == False
+
+
+
+
+
+###################### dictionary with subset of keys ############
+d = dict(a=2, b=3, c=4)
+
+def d_from_keys(d, keys):
+    return dict((key, d[key]) for key in keys)
+    return dict((key, d[key]) for key in keys if key in d)
+
+s = d_from_keys(d, ['a', 'c'])
+
+
+
+
+
+p2 = lambda x: x**2
+a2 = lambda x: x+2
+add_func = lambda n: lambda x: x+n
+mul_func = lambda n: lambda x: x*n
+pow_func = lambda n: lambda x: x**n
+p2 = pow_func(2)
+a2 = add_func(2)
+m2 = mul_func(2)
+
+assert a2(p2(3)) == compose(a2, p2)(3)
+
+lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
+
+#assert disjoin([ident], lst) == any(bool_each([ident], lst))
+
+
+
 
 import itertools
 def flatten(seq): return itertools.chain.from_iterable(seq)
@@ -13,7 +102,7 @@ def flatten(seq): return itertools.chain.from_iterable(seq)
 # accept an iterator/generator.
 
 def propagate_iter(fn, it):
-    # iteratively apply fn(x) for x in it.
+    # yield fn(x) for x in it.
     while 1:
         yield fn(it.next())
 
