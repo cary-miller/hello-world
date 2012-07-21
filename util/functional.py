@@ -27,13 +27,17 @@ ident = lambda x: x
 ident = lambda x: x
 compose = lambda f,g: lambda x: f(g(x))
 bools = lambda lst: [bool(ob) for ob in lst]
+bools = lambda lst: map(bool, lst)
+boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
 
 # Functions that apply identical args to a list of functions.
-apply_each = lambda fns, *pos, **kw: [fn(*pos, **kw) for fn in fns]
-bool_each = lambda fns,  *pos, **kw: bools(apply_each(fns, *pos, **kw))
-all_true = lambda fns,   *pos, **kw: all(bool_each(fns,  *pos, **kw))
-any_true = lambda fns,   *pos, **kw: any(bool_each(fns,  *pos, **kw))
+apply_each = lambda funcs, *pos, **kw: [f(*pos, **kw) for f in funcs]
+bool_each = lambda funcs,  *pos, **kw: bools(apply_each(funcs, *pos, **kw))
+all_true = lambda funcs,   *pos, **kw: all(bool_each(funcs,  *pos, **kw))
+any_true = lambda funcs,   *pos, **kw: any(bool_each(funcs,  *pos, **kw))
 
+# The funcs above and below are doing the same job, but I find the below
+# to be more readable.
 and_ = lambda *funcs: lambda *pos, **kw: all(f(*pos, **kw) for f in funcs)
 or_ = lambda *funcs: lambda *pos, **kw: any(f(*pos, **kw) for f in funcs)
 
