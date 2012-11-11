@@ -36,49 +36,73 @@ boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
 def compose(f,g): 
     return lambda *pos, **kw: f(g(*pos, **kw))
 
-# Generic compose that takes any number of args:
-compose2 = compose
-def compose(*funcs): 
-    i=0
-    c=ident
-    while i <= len(funcs) - 1:
-        c = compose2(funcs[-(i+1)], c)
-        i+=1
-    return c
+
+# Tail recursive compose that takes any number of args:
+# NOTE cannot use *composed* as a kw arg directly.
+def composeTR(composed=ident, *funcs): pass 
+def composeTR(*funcs, **kw):
+ try:
+    composed=kw.get('composed') or ident
+    if not funcs: return composed
+    end=funcs[-1]
+    front=funcs[:-1]
+    def inner(x):
+        return end(composed(x))
+    return composeTR(composed=inner, *front)
+ finally: globals().update(locals())
+
+
 
 # Recursive compose that takes any number of args:
-def composexx(*funcs): 
-    if funcs == (): return ident
-#    return compose(....
+def composeR(*funcs): 
+ try:
+    if not funcs: return ident
+    f0=funcs[0]
+    rest=funcs[1:]
+    return lambda x: f0(composeR(*rest)(x))
+    # NOTE this version requires all composed functions (except the leftmost) to both
+    # take and return a single parameter/value.
+    return lambda *pos, **kw: f0(composeR(*rest)(*pos, **kw))
+    # NOTE the output function takes *pos, **kw instead of the args to the original
+    # functions.
+    # With this version one can compose funcs that take/return any configuration of
+    # parameters and return values.
+ finally: globals().update(locals())
 
-# Recursive compose that takes any number of args:
-def composex(*funcs, **kw): 
-    if funcs == (): return ident
-    if len(funcs) == 1: return funcs[0]
-    return composex(funcs[:-2], base=funcs[-1])
+
+def composeRarb(*funcs): 
+    if not funcs: return ident
+    f0=funcs[0]
+    rest=funcs[1:]
+    return lambda *pos, **kw: f0(composeR(*rest)(*pos, **kw))
+ 
+ 
+def func_composition_test():
+ try:
+    f = lambda x: x+2
+    g = lambda x: x*2
+    h = lambda x: x**2
+    x=4
+    assert composeR()(x) == x == ident(x)  ==  composeTR()(x)
+    assert composeR(f)(x) == f(x)  == composeTR(f)(x) 
+    assert composeR(f,g)(x) == f(g(x))  ==  composeTR(f,g)(x) 
+    assert composeR(f,g,h)(x) == f(g(h(x)))  ==  composeTR(f,g,h)(x)
 
 
-def composex(*funcs): 
-    if funcs == (): return ident
-    fn=funcs[0]
-    return lambda *pos, **kw: fn(composex(funcs[1:]))
+    f = lambda d: str(d['b']) + 'fffffffooooo'
+    g = lambda (x,y): dict(a=x,b=y)
+    h = lambda x: (x,2)
+    assert composeRarb()(x) == x
+    assert composeRarb(h)(x) == h(x)
+    assert composeRarb(g,h)(x) == g(h(x))
+    assert composeRarb(f,g,h)(x) == f(g(h(x)))
+ finally: globals().update(locals())
 
 
-f = lambda x: x+2
-g = lambda x: x*2
-h = lambda x: x**2
+func_composition_test()
 
-c = compose(f,g,h)
-assert c(0) == 2
-assert c(1) == 4
-assert c(2) == 10
-assert c(3) == 20
-assert c(4) == 34
 
-c = composex(f,g,h)
-c = composex()
-c = composex(f)
-c = composex(f,g)
+
 
 
 # Functions that apply identical args to a list of functions.
@@ -130,58 +154,60 @@ any_true = lambda *funcs: lambda  *pos, **kw: or_(*funcs)(*pos, **kw)
 # assert x==y
 
 
-def f(): return 1
-def g(): return 'a'
-def h(): return {'a':3}
-res = apply_each(f,g,h)()
-assert res == [1, 'a', {'a':3}]
+if 0:
+
+    def f(): return 1
+    def g(): return 'a'
+    def h(): return {'a':3}
+    res = apply_each(f,g,h)()
+    assert res == [1, 'a', {'a':3}]
 
 
-def f(x): return x+2
-def g(x): return x*2
-def h(x): return x**2
-res = apply_each(f,g,h)(3)
-assert res == [5, 6, 9]
+    def f(x): return x+2
+    def g(x): return x*2
+    def h(x): return x**2
+    res = apply_each(f,g,h)(3)
+    assert res == [5, 6, 9]
 
 
-def f(x,y): return x+y
-def g(x,y): return x*y
-def h(x,y): return x**y
-res = apply_each(f,g,h)(3, 4)
-assert res == [7, 12, 81]
+    def f(x,y): return x+y
+    def g(x,y): return x*y
+    def h(x,y): return x**y
+    res = apply_each(f,g,h)(3, 4)
+    assert res == [7, 12, 81]
 
 
-def f(x,y, f=None): return f(x+y)
-def g(x,y, f=None): return f(x*y)
-def h(x,y, f=None): return f(x**y)
-res = apply_each(f,g,h)(3, 4, f=ident)
-assert res == [7, 12, 81]
-res = apply_each(f,g,h)(3, 4, f=lambda x: x*2)
-assert res == [14, 24, 162]
+    def f(x,y, f=None): return f(x+y)
+    def g(x,y, f=None): return f(x*y)
+    def h(x,y, f=None): return f(x**y)
+    res = apply_each(f,g,h)(3, 4, f=ident)
+    assert res == [7, 12, 81]
+    res = apply_each(f,g,h)(3, 4, f=lambda x: x*2)
+    assert res == [14, 24, 162]
 
 
 
 
-def t(): return True
-def f(): return False
-assert and_(t,t,t)() == True
-assert and_(t,t,f)() == False
-assert or_(t,t,f)() == True
-assert or_(f,f,f)() == False
+    def t(): return True
+    def f(): return False
+    assert and_(t,t,t)() == True
+    assert and_(t,t,f)() == False
+    assert or_(t,t,f)() == True
+    assert or_(f,f,f)() == False
 
-def t(x,y): return True
-def f(x,y): return False
-assert and_(t,t,t)(0,1) == True
-assert and_(t,t,f)(0,1) == False
-assert or_(t,t,f)(0,1) == True
-assert or_(f,f,f)(0,1) == False
+    def t(x,y): return True
+    def f(x,y): return False
+    assert and_(t,t,t)(0,1) == True
+    assert and_(t,t,f)(0,1) == False
+    assert or_(t,t,f)(0,1) == True
+    assert or_(f,f,f)(0,1) == False
 
-def t(x,y, a,b): return True
-def f(x,y, a,b): return False
-assert and_(t,t,t)(0,1,a='',b=2) == True
-assert and_(t,t,f)(0,1,a='',b=2) == False
-assert or_(t,t,f)(0,1,a='',b=2) == True
-assert or_(f,f,f)(0,1,a='',b=2) == False
+    def t(x,y, a,b): return True
+    def f(x,y, a,b): return False
+    assert and_(t,t,t)(0,1,a='',b=2) == True
+    assert and_(t,t,f)(0,1,a='',b=2) == False
+    assert or_(t,t,f)(0,1,a='',b=2) == True
+    assert or_(f,f,f)(0,1,a='',b=2) == False
 
 
 
