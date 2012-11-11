@@ -1,5 +1,6 @@
 '''
 Functional programming code.  Includes plenty of decorators.
+Requires Python 2.?
 
 '''
 
@@ -26,20 +27,139 @@ ident = lambda x: x
 # Modernized versions
 ident = lambda x: x
 compose = lambda f,g: lambda x: f(g(x))
+compose = lambda f,g: lambda *pos, **kw: f(g(*pos, **kw))
 bools = lambda lst: [bool(ob) for ob in lst]
 bools = lambda lst: map(bool, lst)
 boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
 
+# Original compose
+def compose(f,g): 
+    return lambda *pos, **kw: f(g(*pos, **kw))
+
+# Generic compose that takes any number of args:
+compose2 = compose
+def compose(*funcs): 
+    i=0
+    c=ident
+    while i <= len(funcs) - 1:
+        c = compose2(funcs[-(i+1)], c)
+        i+=1
+    return c
+
+# Recursive compose that takes any number of args:
+def composexx(*funcs): 
+    if funcs == (): return ident
+#    return compose(....
+
+# Recursive compose that takes any number of args:
+def composex(*funcs, **kw): 
+    if funcs == (): return ident
+    if len(funcs) == 1: return funcs[0]
+    return composex(funcs[:-2], base=funcs[-1])
+
+
+def composex(*funcs): 
+    if funcs == (): return ident
+    fn=funcs[0]
+    return lambda *pos, **kw: fn(composex(funcs[1:]))
+
+
+f = lambda x: x+2
+g = lambda x: x*2
+h = lambda x: x**2
+
+c = compose(f,g,h)
+assert c(0) == 2
+assert c(1) == 4
+assert c(2) == 10
+assert c(3) == 20
+assert c(4) == 34
+
+c = composex(f,g,h)
+c = composex()
+c = composex(f)
+c = composex(f,g)
+
+
 # Functions that apply identical args to a list of functions.
-apply_each = lambda funcs, *pos, **kw: [f(*pos, **kw) for f in funcs]
-bool_each = lambda funcs,  *pos, **kw: bools(apply_each(funcs, *pos, **kw))
-all_true = lambda funcs,   *pos, **kw: all(bool_each(funcs,  *pos, **kw))
-any_true = lambda funcs,   *pos, **kw: any(bool_each(funcs,  *pos, **kw))
+# apply_each = lambda *funcs, *pos, **kw: [f(*pos, **kw) for f in funcs]
+# bool_each = lambda *funcs,  *pos, **kw: bools(apply_each(funcs, *pos, **kw))
+# all_true = lambda *funcs,   *pos, **kw: and_(*funcs)(*pos, **kw)
+# any_true = lambda *funcs,   *pos, **kw: or_(*funcs)(*pos, **kw)
+
+
+# TODO move this to the top (and redo mertz funcs?)
+import sys
+(major, minor) = [int(sys.version[i]) for i in (0,2)]
+if major==2 and minor<5:
+
+    def all(seq):
+        for ob in seq:
+            if not ob:
+                return False
+        return True
+
+    def any(seq):
+        for ob in seq:
+            if ob:
+                return True
+        return False
+
+
+
+
 
 # The funcs above and below are doing the same job, but I find the below
 # to be more readable.
 and_ = lambda *funcs: lambda *pos, **kw: all(f(*pos, **kw) for f in funcs)
 or_ = lambda *funcs: lambda *pos, **kw: any(f(*pos, **kw) for f in funcs)
+
+
+# Functions that apply identical args to a list of functions.
+apply_each = lambda *funcs: lambda *pos, **kw: [f(*pos, **kw) for f in funcs]
+bool_each = lambda *funcs: lambda  *pos, **kw: bools(apply_each(funcs)(*pos, **kw))
+all_true = lambda *funcs: lambda  *pos, **kw: and_(*funcs)(*pos, **kw)
+any_true = lambda *funcs: lambda  *pos, **kw: or_(*funcs)(*pos, **kw)
+
+# The nice thing here is that the composite function takes the exact same
+# args as each of the sub-funcs.
+# >>> a = f(*pos, **kw)
+# >>> b = g(*pos, **kw)
+# >>> x = composite(f,g,h)(*pos, **kw)
+# >>> y = composite([f,g,h], [pos], [kw])  # or something
+# assert x==y
+
+
+def f(): return 1
+def g(): return 'a'
+def h(): return {'a':3}
+res = apply_each(f,g,h)()
+assert res == [1, 'a', {'a':3}]
+
+
+def f(x): return x+2
+def g(x): return x*2
+def h(x): return x**2
+res = apply_each(f,g,h)(3)
+assert res == [5, 6, 9]
+
+
+def f(x,y): return x+y
+def g(x,y): return x*y
+def h(x,y): return x**y
+res = apply_each(f,g,h)(3, 4)
+assert res == [7, 12, 81]
+
+
+def f(x,y, f=None): return f(x+y)
+def g(x,y, f=None): return f(x*y)
+def h(x,y, f=None): return f(x**y)
+res = apply_each(f,g,h)(3, 4, f=ident)
+assert res == [7, 12, 81]
+res = apply_each(f,g,h)(3, 4, f=lambda x: x*2)
+assert res == [14, 24, 162]
+
+
 
 
 def t(): return True
