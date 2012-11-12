@@ -1,119 +1,15 @@
 '''
 Functional programming code.  Includes plenty of decorators.
-Requires Python 2.?
+Works with Python 2.4+
+Starts with Mertz's page of functional code at the beginning of
+*Text Processing with Python*
+Improves and modernizes Mertz's code.  Mertz wanted backward-compatibility all the way to 2.0
+or something and I only want back to 2.4.
 
 '''
 
-
-# Functional code lifted from Mertz's Text Processing book
-from operator import mul, add, truth
-#apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
-bools = lambda lst: map(truth, lst)
-bool_each = lambda fns, args=[] : bools(apply_each(fns, args))
-conjoin = lambda fns, args=[]: reduce(mul, bool_each(fns, args))
-all_ = lambda fns: lambda arg, fns: conjoin(fns, (arg,))
-both = lambda f,g: all_((f,g))
-all3 = lambda f,g,h: all_((f,g,h)) 
-and_ = lambda f,g: lambda x, f=f, g=g: f(x) and g(x)
-disjoin = lambda fns, args=[]: reduce(add, bool_each(fns, args))
-some = lambda fns: lambda arg, fns=fns: disjoin(fns, (arg,))
-either = lambda f,g: some((f,g))
-anyof3 = lambda f,g,h: some((f,g,h)) 
-#compose = lambda f,g: lambda x, f=f, g=g: f(g(x))
-ident = lambda x: x
-
-
-
-# Modernized versions
-ident = lambda x: x
-compose = lambda f,g: lambda x: f(g(x))
-compose = lambda f,g: lambda *pos, **kw: f(g(*pos, **kw))
-bools = lambda lst: [bool(ob) for ob in lst]
-bools = lambda lst: map(bool, lst)
-boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
-
-# Original compose
-def compose(f,g): 
-    return lambda *pos, **kw: f(g(*pos, **kw))
-
-
-# Tail recursive compose that takes any number of args:
-# NOTE cannot use *composed* as a kw arg directly.
-def composeTR(composed=ident, *funcs): pass 
-def composeTR(*funcs, **kw):
- try:
-    composed=kw.get('composed') or ident
-    if not funcs: return composed
-    end=funcs[-1]
-    front=funcs[:-1]
-    def inner(x):
-        return end(composed(x))
-    return composeTR(composed=inner, *front)
- finally: globals().update(locals())
-
-
-
-# Recursive compose that takes any number of args:
-def composeR(*funcs): 
- try:
-    if not funcs: return ident
-    f0=funcs[0]
-    rest=funcs[1:]
-    return lambda x: f0(composeR(*rest)(x))
-    # NOTE this version requires all composed functions (except the leftmost) to both
-    # take and return a single parameter/value.
-    return lambda *pos, **kw: f0(composeR(*rest)(*pos, **kw))
-    # NOTE the output function takes *pos, **kw instead of the args to the original
-    # functions.
-    # With this version one can compose funcs that take/return any configuration of
-    # parameters and return values.
- finally: globals().update(locals())
-
-
-def composeRarb(*funcs): 
-    if not funcs: return ident
-    f0=funcs[0]
-    rest=funcs[1:]
-    return lambda *pos, **kw: f0(composeR(*rest)(*pos, **kw))
- 
- 
-def func_composition_test():
- try:
-    f = lambda x: x+2
-    g = lambda x: x*2
-    h = lambda x: x**2
-    x=4
-    assert composeR()(x) == x == ident(x)  ==  composeTR()(x)
-    assert composeR(f)(x) == f(x)  == composeTR(f)(x) 
-    assert composeR(f,g)(x) == f(g(x))  ==  composeTR(f,g)(x) 
-    assert composeR(f,g,h)(x) == f(g(h(x)))  ==  composeTR(f,g,h)(x)
-
-
-    f = lambda d: str(d['b']) + 'fffffffooooo'
-    g = lambda (x,y): dict(a=x,b=y)
-    h = lambda x: (x,2)
-    assert composeRarb()(x) == x
-    assert composeRarb(h)(x) == h(x)
-    assert composeRarb(g,h)(x) == g(h(x))
-    assert composeRarb(f,g,h)(x) == f(g(h(x)))
- finally: globals().update(locals())
-
-
-func_composition_test()
-
-
-
-
-
-# Functions that apply identical args to a list of functions.
-# apply_each = lambda *funcs, *pos, **kw: [f(*pos, **kw) for f in funcs]
-# bool_each = lambda *funcs,  *pos, **kw: bools(apply_each(funcs, *pos, **kw))
-# all_true = lambda *funcs,   *pos, **kw: and_(*funcs)(*pos, **kw)
-# any_true = lambda *funcs,   *pos, **kw: or_(*funcs)(*pos, **kw)
-
-
-# TODO move this to the top (and redo mertz funcs?)
 import sys
+
 (major, minor) = [int(sys.version[i]) for i in (0,2)]
 if major==2 and minor<5:
 
@@ -130,51 +26,190 @@ if major==2 and minor<5:
         return False
 
 
+# Borrowing handy ideas from Lisp.
+def head_tail(seq): 
+    '''
+    >>> head_tail('abcdef')
+    ('a', 'bcdef')
+    '''
+    return (seq[0], seq[1:])
+
+def end_front(seq): 
+    '''
+    >>> end_front('abcdef')
+    ('abcde', 'f')
+    '''
+    return (seq[:-1], seq[-1])
 
 
 
-# The funcs above and below are doing the same job, but I find the below
-# to be more readable.
+def mertz():
+    # Functional code from Mertz's Text Processing book
+    # 
+    # I rake Mertz over the coals a bit here but I owe him a lot for providing clear
+    # examples of functional code.  These examples here are not his clearest stuff and
+    # I improve it below.
+    # 
+    from operator import mul, add, truth
+    #mertz_apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
+    #
+    # The pattern of lambda fns, args=[]: ... sucks.  There is a much cleaner, more intuitive
+    # way:  lambda fns: lambda *pos, **kw: ...
+    
+    #bools = lambda lst: map(truth, lst) # builtin bool replaces truth
+    #bool_each = lambda fns, args=[] : bools(apply_each(fns, args)) # bad pattern  
+    conjoin = lambda fns, args=[]: reduce(mul, bool_each(fns, args)) # replaced by builtin all
+    disjoin = lambda fns, args=[]: reduce(add, bool_each(fns, args)) # replaced by builtin any 
+
+    # These below are just specialized versions of conjoin/disjoin.
+    all_ = lambda fns: lambda arg, fns: conjoin(fns, (arg,))
+    both = lambda f,g: all_((f,g))
+    all3 = lambda f,g,h: all_((f,g,h)) 
+    #
+    some = lambda fns: lambda arg, fns=fns: disjoin(fns, (arg,))
+    either = lambda f,g: some((f,g))
+    anyof3 = lambda f,g,h: some((f,g,h)) 
+
+    and_ = lambda f,g: lambda x, f=f, g=g: f(x) and g(x)
+
+    #compose = lambda f,g: lambda x, f=f, g=g: f(g(x))
+    # This one sucks because it only composes two functions.
+    ident = lambda x: x  # The only one that survives unchanged.
+    
+    globals().update(locals())
+
+
+def mertz_test():
+    assert bools([1,None,[],lambda:None]) == [True, False, False, True]
+    assert sum(bools([1,None,[],lambda:None])) == 2
+    
+
+
+# Modernized versions
+ident = lambda x: x
+compose = lambda f,g: lambda x: f(g(x))
+compose = lambda f,g: lambda *pos, **kw: f(g(*pos, **kw))
+bools = lambda lst: [bool(ob) for ob in lst]
+bools = lambda lst: map(bool, lst)
+boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
+
+#########################################################################################
+################################## Compose functions  ###################################
+#########################################################################################
+
+
+# Original compose
+def compose(f,g): 
+    return lambda *pos, **kw: f(g(*pos, **kw))
+
+
+# Tail recursive compose that takes any number of args:
+# NOTE cannot use *composed* as a kw arg directly.
+def composeTR(composed=ident, *funcs): pass 
+def composeTR(*funcs, **kw):
+ try:
+    composed=kw.get('composed') or ident
+    if not funcs: return composed
+    end=funcs[-1]
+    front=funcs[:-1]
+#    (end, front) = end_front(funcs)  # TODO debug
+    def inner(x):
+        return end(composed(x))
+    return composeTR(composed=inner, *front)
+ finally: globals().update(locals())
+
+
+
+def composeR(*funcs): 
+    '''
+    Recursive compose that takes any number of args.
+    Composed functions take a single arg(x) and return a single value.
+    '''
+    if not funcs: return ident
+    (f0, rest) = head_tail(funcs) 
+    return lambda x: f0(composeR(*rest)(x))
+
+
+
+def composeRarb(*funcs): 
+    '''
+    Recursive compose that takes any number of args.
+    Composed functions take arbitrary args (*pos, **kw) and return arbitrary values.
+    Each composed function must take as parameters the output of the previous
+    function.
+    '''
+    if not funcs: return ident
+    (f0, rest) = head_tail(funcs) 
+    return lambda *pos, **kw: f0(composeR(*rest)(*pos, **kw))
+ 
+ 
+def composeR_test():
+ try:
+    f = lambda x: x+2
+    g = lambda x: x*2
+    h = lambda x: x**2
+    x=4
+    assert composeR()(x) == x == ident(x)  ==  composeTR()(x)
+    assert composeR(f)(x) == f(x)  == composeTR(f)(x) 
+    assert composeR(f,g)(x) == f(g(x))  ==  composeTR(f,g)(x) 
+    assert composeR(f,g,h)(x) == f(g(h(x)))  ==  composeTR(f,g,h)(x)
+ finally: globals().update(locals())
+
+
+def composeRarb_test():
+ try:
+    f = lambda d: str(d['b']) + 'fffffffooooo'
+    g = lambda (x,y): dict(a=x,b=y)
+    h = lambda x: (x,2)
+    x=4
+    assert composeRarb()(x) == x
+    assert composeRarb(h)(x) == h(x)
+    assert composeRarb(g,h)(x) == g(h(x))
+    assert composeRarb(f,g,h)(x) == f(g(h(x)))
+ finally: globals().update(locals())
+
+
+composeR_test()
+composeRarb_test()
+
+
+
+#########################################################################################
+########### Apply a list of functions element-wise to a one set of arguments ############
+#########################################################################################
+
+
 and_ = lambda *funcs: lambda *pos, **kw: all(f(*pos, **kw) for f in funcs)
 or_ = lambda *funcs: lambda *pos, **kw: any(f(*pos, **kw) for f in funcs)
 
-
-# Functions that apply identical args to a list of functions.
+mertz_apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
 apply_each = lambda *funcs: lambda *pos, **kw: [f(*pos, **kw) for f in funcs]
 bool_each = lambda *funcs: lambda  *pos, **kw: bools(apply_each(funcs)(*pos, **kw))
 all_true = lambda *funcs: lambda  *pos, **kw: and_(*funcs)(*pos, **kw)
 any_true = lambda *funcs: lambda  *pos, **kw: or_(*funcs)(*pos, **kw)
 
-# The nice thing here is that the composite function takes the exact same
-# args as each of the sub-funcs.
-# >>> a = f(*pos, **kw)
-# >>> b = g(*pos, **kw)
-# >>> x = composite(f,g,h)(*pos, **kw)
-# >>> y = composite([f,g,h], [pos], [kw])  # or something
-# assert x==y
 
-
-if 0:
-
+def testing():
+ try:
     def f(): return 1
     def g(): return 'a'
     def h(): return {'a':3}
     res = apply_each(f,g,h)()
-    assert res == [1, 'a', {'a':3}]
+    assert res == [1, 'a', {'a':3}]   == mertz_apply_each([f,g,h], [])
 
 
     def f(x): return x+2
     def g(x): return x*2
     def h(x): return x**2
     res = apply_each(f,g,h)(3)
-    assert res == [5, 6, 9]
+    assert res == [5, 6, 9]   == mertz_apply_each([f,g,h], [3])
 
 
     def f(x,y): return x+y
     def g(x,y): return x*y
     def h(x,y): return x**y
     res = apply_each(f,g,h)(3, 4)
-    assert res == [7, 12, 81]
+    assert res == [7, 12, 81]  == mertz_apply_each([f,g,h], [3, 4])
 
 
     def f(x,y, f=None): return f(x+y)
@@ -183,9 +218,19 @@ if 0:
     res = apply_each(f,g,h)(3, 4, f=ident)
     assert res == [7, 12, 81]
     res = apply_each(f,g,h)(3, 4, f=lambda x: x*2)
-    assert res == [14, 24, 162]
+    assert res == [14, 24, 162]  == mertz_apply_each([f,g,h], [3, 4,  lambda x: x*2])
+    # NOTE mertz requires transforming keyword params to positional,  thus losing information
+    # and making it impossible to give keywords args in arbitrary order.
 
-
+    def f(x,y, f=None, g=0): return f(x+y)
+    def g(x,y, f=None, g=0): return f(x*y) + g
+    def h(x,y, g=0, f=None): return f(x**y) * g
+    assert  apply_each(f,g,h)(3, 4, f=lambda x: x*2, g=11) == apply_each(f,g,h)(3, 4, g=11, f=lambda x: x*2)
+    # oops, mertz can't handle this, haha.
+    return
+    return
+    return
+    return
 
 
     def t(): return True
@@ -209,6 +254,7 @@ if 0:
     assert or_(t,t,f)(0,1,a='',b=2) == True
     assert or_(f,f,f)(0,1,a='',b=2) == False
 
+ finally: globals().update(locals())
 
 
 
@@ -242,7 +288,9 @@ lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
 #assert disjoin([ident], lst) == any(bool_each([ident], lst))
 
 
-
+#########################################################################################
+################# Apply a function element-wise to a list of arguments ##################
+#########################################################################################
 
 import itertools
 def flatten(seq): return itertools.chain.from_iterable(seq)
