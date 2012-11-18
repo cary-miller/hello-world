@@ -110,13 +110,12 @@ def composeTR(*funcs, **kw):
  try:
     composed=kw.get('composed') or ident
     if not funcs: return composed
-    end=funcs[-1]
-    front=funcs[:-1]
-#    (end, front) = end_front(funcs)  # TODO debug
+    (front, end) = end_front(funcs)
     def inner(x):
         return end(composed(x))
     return composeTR(composed=inner, *front)
  finally: globals().update(locals())
+ # TODO this tail recursive func is ugly.  Send it to stack overflow.
 
 
 
@@ -257,35 +256,21 @@ def testing():
  finally: globals().update(locals())
 
 
+def foooo():
+    p2 = lambda x: x**2
+    a2 = lambda x: x+2
+    add_func = lambda n: lambda x: x+n
+    mul_func = lambda n: lambda x: x*n
+    pow_func = lambda n: lambda x: x**n
+    p2 = pow_func(2)
+    a2 = add_func(2)
+    m2 = mul_func(2)
 
+    assert a2(p2(3)) == compose(a2, p2)(3)
 
-###################### dictionary with subset of keys ############
-d = dict(a=2, b=3, c=4)
+    lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
 
-def d_from_keys(d, keys):
-    return dict((key, d[key]) for key in keys)
-    return dict((key, d[key]) for key in keys if key in d)
-
-s = d_from_keys(d, ['a', 'c'])
-
-
-
-
-
-p2 = lambda x: x**2
-a2 = lambda x: x+2
-add_func = lambda n: lambda x: x+n
-mul_func = lambda n: lambda x: x*n
-pow_func = lambda n: lambda x: x**n
-p2 = pow_func(2)
-a2 = add_func(2)
-m2 = mul_func(2)
-
-assert a2(p2(3)) == compose(a2, p2)(3)
-
-lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
-
-#assert disjoin([ident], lst) == any(bool_each([ident], lst))
+    #assert disjoin([ident], lst) == any(bool_each([ident], lst))
 
 
 #########################################################################################
@@ -392,6 +377,49 @@ def test_sequencify():
     haha = sequencify(f)(('b', 'a'))
     #bada = sequencify(f)('a', 'b')
     tada = sequencify(f)('a')
+
+
+# ######################################################################## #
+# ###################### Dictionary Functions ############################ #
+# ######################################################################## #
+def test_d_funcs():
+ try:
+    d = dict(a=1,b=2,c=3)
+    assert d_subset(d, ('a', 'c')) == {'a': 1, 'c': 3} == d_from_keys(d, ['a', 'c'])
+    m = (('a','x'), ('b','y'))
+
+    assert d_trans_keys(d, m) == {'y': 2, 'x': 1, 'c': 3}
+    assert d_trans_keys(d, m, keep_all_keys=False) == {'y': 2, 'x': 1}
+    assert d_trans_keys(d, m, False) == {'y': 2, 'x': 1}
+ finally: globals().update(locals())
+
+def d_subset(dct, keys):
+    '''Subset dict, keeping keys, tossing other keys.
+    >>> d = dict(a=1,b=2,c=3)
+    >>> assert d_subset(d, ('a', 'c')) == {'a': 1, 'c': 3}
+    '''
+    return dict((key, value) for (key, value) in dct.items() if key in keys)
+
+# TODO which name to use?  This, that, both?
+def d_from_keys(d, keys):
+    return dict((key, d[key]) for key in keys)
+    return dict((key, d[key]) for key in keys if key in d)
+
+# TODO change trans to translate
+def d_trans_keys(dct, mapping, keep_all_keys=True):
+    '''Translate dict keys, optionally keeping only mapped keys.
+    >>> d = dict(a=1,b=2,c=3)
+    >>> m = (('a','x'), ('b','y'))
+    >>> assert d_trans_keys(d, m) == {'y': 2, 'x': 1, 'c': 3}
+    >>> assert d_trans_keys(d, m, keep_all_keys=False) == {'y': 2, 'x': 1}
+    >>> assert d_trans_keys(d, m, False) == {'y': 2, 'x': 1}
+    '''
+    if keep_all_keys:
+        mkeys = [old for (old,new) in mapping]
+        mapping = list(mapping) + [(k,k) for k in dct.keys() if k not in mkeys]
+    return dict((new, dct[old]) for (old,new) in mapping)
+
+
 
 
 
