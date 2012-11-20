@@ -15,15 +15,16 @@ if major==2 and minor<5:
 
     def all(seq):
         for ob in seq:
-            if not ob:
+            if not bool(ob):
                 return False
         return True
 
     def any(seq):
         for ob in seq:
-            if ob:
+            if bool(ob):
                 return True
         return False
+        
 
 
 # Borrowing handy ideas from Lisp.
@@ -35,6 +36,7 @@ def head_tail(seq):
     return (seq[0], seq[1:])
 
 def end_front(seq): 
+    # TODO change name to front_end or head_butt
     '''
     >>> end_front('abcdef')
     ('abcde', 'f')
@@ -43,82 +45,25 @@ def end_front(seq):
 
 
 
-def mertz():
-    # Functional code from Mertz's Text Processing book
-    # 
-    # I rake Mertz over the coals a bit here but I owe him a lot for providing clear
-    # examples of functional code.  These examples here are not his clearest stuff and
-    # I improve it below.
-    # 
-    from operator import mul, add, truth
-    #mertz_apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
-    #
-    # The pattern of lambda fns, args=[]: ... sucks.  There is a much cleaner, more intuitive
-    # way:  lambda fns: lambda *pos, **kw: ...
-    
-    #bools = lambda lst: map(truth, lst) # builtin bool replaces truth
-    #bool_each = lambda fns, args=[] : bools(apply_each(fns, args)) # bad pattern  
-    conjoin = lambda fns, args=[]: reduce(mul, bool_each(fns, args)) # replaced by builtin all
-    disjoin = lambda fns, args=[]: reduce(add, bool_each(fns, args)) # replaced by builtin any 
-
-    # These below are just specialized versions of conjoin/disjoin.
-    all_ = lambda fns: lambda arg, fns: conjoin(fns, (arg,))
-    both = lambda f,g: all_((f,g))
-    all3 = lambda f,g,h: all_((f,g,h)) 
-    #
-    some = lambda fns: lambda arg, fns=fns: disjoin(fns, (arg,))
-    either = lambda f,g: some((f,g))
-    anyof3 = lambda f,g,h: some((f,g,h)) 
-
-    and_ = lambda f,g: lambda x, f=f, g=g: f(x) and g(x)
-
-    #compose = lambda f,g: lambda x, f=f, g=g: f(g(x))
-    # This one sucks because it only composes two functions.
-    ident = lambda x: x  # The only one that survives unchanged.
-    
-    globals().update(locals())
-
-
-def mertz_test():
-    assert bools([1,None,[],lambda:None]) == [True, False, False, True]
-    assert sum(bools([1,None,[],lambda:None])) == 2
-    
-
-
-# Modernized versions
+# Modernized versions of Mertz's functional code from *Text Processing with Python*
+# A lot of his stuff is superceded by builtins; bool, all, any.
 ident = lambda x: x
-compose = lambda f,g: lambda x: f(g(x))
-compose = lambda f,g: lambda *pos, **kw: f(g(*pos, **kw))
 bools = lambda lst: [bool(ob) for ob in lst]
 bools = lambda lst: map(bool, lst)
 boolify = lambda f: lambda *pos, **kw: bool(f(*pos, **kw))
+# TODO show an example/test of using this one.  Is it even needed?
 
 #########################################################################################
 ################################## Compose functions  ###################################
 #########################################################################################
 
 
-# Original compose
-def compose(f,g): 
-    return lambda *pos, **kw: f(g(*pos, **kw))
+# Original compose only takes two functions.
+compose = lambda f,g: lambda x: f(g(x))
+compose = lambda f,g: lambda *pos, **kw: f(g(*pos, **kw))
 
 
-# Tail recursive compose that takes any number of args:
-# NOTE cannot use *composed* as a kw arg directly.
-def composeTR(composed=ident, *funcs): pass 
-def composeTR(*funcs, **kw):
- try:
-    composed=kw.get('composed') or ident
-    if not funcs: return composed
-    (front, end) = end_front(funcs)
-    def inner(x):
-        return end(composed(x))
-    return composeTR(composed=inner, *front)
- finally: globals().update(locals())
- # TODO this tail recursive func is ugly.  Send it to stack overflow.
-
-
-
+ 
 def composeR(*funcs): 
     '''
     Recursive compose that takes any number of args.
@@ -127,6 +72,17 @@ def composeR(*funcs):
     if not funcs: return ident
     (f0, rest) = head_tail(funcs) 
     return lambda x: f0(composeR(*rest)(x))
+
+
+def composeTR(*funcs, **kw):
+    '''
+    Tail recursive compose that takes any number of args.
+    Composed functions take a single arg(x) and return a single value.
+    '''
+    composed=kw.get('composed') or ident
+    if not funcs: return composed
+    (front, end) = end_front(funcs)
+    return composeTR(*front, composed=lambda x: end(composed(x)))
 
 
 
@@ -174,64 +130,61 @@ composeRarb_test()
 
 
 #########################################################################################
-########### Apply a list of functions element-wise to a one set of arguments ############
+############ Apply a list of functions element-wise to one set of arguments #############
 #########################################################################################
 
 
 and_ = lambda *funcs: lambda *pos, **kw: all(f(*pos, **kw) for f in funcs)
 or_ = lambda *funcs: lambda *pos, **kw: any(f(*pos, **kw) for f in funcs)
+all_true = lambda *funcs: lambda  *pos, **kw: all(f(*pos, **kw) for f in funcs)
+any_true = lambda *funcs: lambda  *pos, **kw: any(f(*pos, **kw) for f in funcs)
 
-mertz_apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns))
+mertz_apply_each = lambda fns, args=[]: map(apply, fns, [args]*len(fns)) # ugly
 apply_each = lambda *funcs: lambda *pos, **kw: [f(*pos, **kw) for f in funcs]
 bool_each = lambda *funcs: lambda  *pos, **kw: bools(apply_each(funcs)(*pos, **kw))
-all_true = lambda *funcs: lambda  *pos, **kw: and_(*funcs)(*pos, **kw)
-any_true = lambda *funcs: lambda  *pos, **kw: or_(*funcs)(*pos, **kw)
 
 
-def testing():
+def testing(): # TODO rename
  try:
     def f(): return 1
     def g(): return 'a'
     def h(): return {'a':3}
-    res = apply_each(f,g,h)()
-    assert res == [1, 'a', {'a':3}]   == mertz_apply_each([f,g,h], [])
+    assert  apply_each(f,g,h)() == [1, 'a', {'a':3}]   == mertz_apply_each([f,g,h], [])
 
 
     def f(x): return x+2
     def g(x): return x*2
     def h(x): return x**2
-    res = apply_each(f,g,h)(3)
-    assert res == [5, 6, 9]   == mertz_apply_each([f,g,h], [3])
+    assert apply_each(f,g,h)(3) == [5, 6, 9]   == mertz_apply_each([f,g,h], [3])
 
 
     def f(x,y): return x+y
     def g(x,y): return x*y
     def h(x,y): return x**y
-    res = apply_each(f,g,h)(3, 4)
-    assert res == [7, 12, 81]  == mertz_apply_each([f,g,h], [3, 4])
+    assert apply_each(f,g,h)(3, 4) == [7, 12, 81]  == mertz_apply_each([f,g,h], [3, 4])
 
 
     def f(x,y, f=None): return f(x+y)
     def g(x,y, f=None): return f(x*y)
     def h(x,y, f=None): return f(x**y)
-    res = apply_each(f,g,h)(3, 4, f=ident)
-    assert res == [7, 12, 81]
-    res = apply_each(f,g,h)(3, 4, f=lambda x: x*2)
-    assert res == [14, 24, 162]  == mertz_apply_each([f,g,h], [3, 4,  lambda x: x*2])
+    assert apply_each(f,g,h)(3, 4, f=ident) == [7, 12, 81]
+    assert apply_each(f,g,h)(3, 4, f=lambda x: x*2) == [14, 24, 162] \
+        == mertz_apply_each([f,g,h], [3, 4,  lambda x: x*2])
     # NOTE mertz requires transforming keyword params to positional,  thus losing information
     # and making it impossible to give keywords args in arbitrary order.
 
     def f(x,y, f=None, g=0): return f(x+y)
     def g(x,y, f=None, g=0): return f(x*y) + g
     def h(x,y, g=0, f=None): return f(x**y) * g
-    assert  apply_each(f,g,h)(3, 4, f=lambda x: x*2, g=11) == apply_each(f,g,h)(3, 4, g=11, f=lambda x: x*2)
+    assert  apply_each(f,g,h)(3, 4, f=lambda x: x*2, g=11) == \
+            apply_each(f,g,h)(3, 4, g=11, f=lambda x: x*2)
     # oops, mertz can't handle this, haha.
-    return
-    return
-    return
-    return
+ finally: globals().update(locals())
+testing()
 
 
+def a():
+ try:
     def t(): return True
     def f(): return False
     assert and_(t,t,t)() == True
@@ -254,9 +207,12 @@ def testing():
     assert or_(f,f,f)(0,1,a='',b=2) == False
 
  finally: globals().update(locals())
+a()
 
 
 def foooo():
+ try:
+    # Not sure why this is here.  Tests the original simple compose.
     p2 = lambda x: x**2
     a2 = lambda x: x+2
     add_func = lambda n: lambda x: x+n
@@ -267,10 +223,14 @@ def foooo():
     m2 = mul_func(2)
 
     assert a2(p2(3)) == compose(a2, p2)(3)
+    assert a2(p2(3)) == composeR(a2, p2)(3)
+    assert a2(p2(3)) == composeTR(a2, p2)(3)
 
     lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
 
     #assert disjoin([ident], lst) == any(bool_each([ident], lst))
+ finally: globals().update(locals())
+foooo()
 
 
 #########################################################################################
@@ -285,12 +245,11 @@ def flatten(seq): return itertools.chain.from_iterable(seq)
 # accept an iterator/generator.
 
 def propagate_iter(fn, it):
-    # yield fn(x) for x in it.
+    ''' yield fn(x) for x in it. '''
     while 1:
         yield fn(it.next())
 
-# like propagate_iter except stupid xrange does not have a .next() method
-# so we improvise.
+# like propagate_iter except xrange does not have a .next() method.
 def propagate_xrange(fn, xr):
     for i in xr:
         yield fn(i)
@@ -306,20 +265,15 @@ def elementwise(fn):
     The input function, fn, is a function of one arg.  Return a function
     that accepts list/tuple/iter/generator/xrange/set of args.
     NOTE: xrange is a misfit non-iterator, xrange is a TYPE!
+    
     >>> @elementwise
     >>> def sq(x): return x**2
     >>> sq = elementwise(lambda x:x**2)
-    >>> sq(3)        # int
-    9
-    >>> sq(range(5)) # list
-    [0, 1, 4, 9, 16]
-    >>> g = sq(i for i in range(5)) # generator
-    >>> [n for n in g]
-    [0, 1, 4, 9, 16]
-    >>> sq(xrange(5)) # neither fish nor fowl
-    [0, 1, 4, 9, 16]
-    >>> sq(set((1,2,3)))
-    [1, 4, 9]
+    >>> assert sq(3) == 9
+    >>> assert sq(range(5)) == [0, 1, 4, 9, 16]
+    >>> assert [n for n in sq(i for i in range(5))] == [0, 1, 4, 9, 16]
+    >>> assert sq(xrange(5)) == [0, 1, 4, 9, 16]
+    >>> assert sq(set((1,2,3))) == [1, 4, 9]
 
     >>> # Would like to have this option.
     >>> sq(1,2,3)    # exception
@@ -328,17 +282,26 @@ def elementwise(fn):
     def newfn(arg):
         if type(arg) == dict:
             raise TypeError('elementwise not accepting dict arg, %s'%str(arg))
-        if type(arg) in (set):
-            return map(fn, arg)
-        if type(arg) in (list, tuple):
-            return type(arg)(map(fn, arg))
-        if hasattr(arg, 'next'): # iterator/generator
-            return propagate_iter(fn, arg)
-        if type(arg) in (xrange):
-            return propagate_xrange(fn, arg)
+        if type(arg) in (set,):         return map(fn, arg)
+        if type(arg) in (list, tuple): return type(arg)(map(fn, arg))
+        if hasattr(arg, 'next'):       return propagate_iter(fn, arg)# iterator/generator
+        if type(arg) in (xrange, ):      return propagate_xrange(fn, arg)
         return fn(arg)
     return newfn
 
+def test_elementwise():
+ try:
+    @elementwise
+    def sq(x): return x**2
+    sq = elementwise(lambda x:x**2)
+    assert sq(3) == 9
+    assert sq(range(5)) == [0, 1, 4, 9, 16]
+    assert [n for n in sq(i for i in range(5))] == [0, 1, 4, 9, 16]
+    assert [n for n in sq(xrange(5))] == [0, 1, 4, 9, 16]
+    assert sq(set((1,2,3))) == [1, 4, 9]
+ finally: globals().update(locals())
+
+test_elementwise()
 
 
 def sequencify(func):
@@ -365,8 +328,7 @@ def sequencify(func):
 
 
 def spread_out(iter):
-    ''' Return the list.
-    '''
+    ''' Return the list.  '''
     return [ob for ob in iter]
 
 
@@ -382,16 +344,6 @@ def test_sequencify():
 # ######################################################################## #
 # ###################### Dictionary Functions ############################ #
 # ######################################################################## #
-def test_d_funcs():
- try:
-    d = dict(a=1,b=2,c=3)
-    assert d_subset(d, ('a', 'c')) == {'a': 1, 'c': 3} == d_from_keys(d, ['a', 'c'])
-    m = (('a','x'), ('b','y'))
-
-    assert d_trans_keys(d, m) == {'y': 2, 'x': 1, 'c': 3}
-    assert d_trans_keys(d, m, keep_all_keys=False) == {'y': 2, 'x': 1}
-    assert d_trans_keys(d, m, False) == {'y': 2, 'x': 1}
- finally: globals().update(locals())
 
 def d_subset(dct, keys):
     '''Subset dict, keeping keys, tossing other keys.
@@ -400,7 +352,7 @@ def d_subset(dct, keys):
     '''
     return dict((key, value) for (key, value) in dct.items() if key in keys)
 
-# TODO which name to use?  This, that, both?
+# TODO which name to use?  This, that, both, neither?
 def d_from_keys(d, keys):
     return dict((key, d[key]) for key in keys)
     return dict((key, d[key]) for key in keys if key in d)
@@ -415,11 +367,23 @@ def d_trans_keys(dct, mapping, keep_all_keys=True):
     >>> assert d_trans_keys(d, m, False) == {'y': 2, 'x': 1}
     '''
     if keep_all_keys:
-        mkeys = [old for (old,new) in mapping]
-        mapping = list(mapping) + [(k,k) for k in dct.keys() if k not in mkeys]
+        mkeys = [old for (old,new) in mapping]  # translated keys
+        mapping = list(mapping) + [(old,old) for old in dct.keys() if old not in mkeys]
     return dict((new, dct[old]) for (old,new) in mapping)
 
 
+def test_d_funcs():
+ try:
+    d = dict(a=1,b=2,c=3)
+    assert d_subset(d, ('a', 'c')) == {'a': 1, 'c': 3} == d_from_keys(d, ['a', 'c'])
+    m = (('a','x'), ('b','y'))
+
+    assert d_trans_keys(d, m) == {'y': 2, 'x': 1, 'c': 3}
+    assert d_trans_keys(d, m, keep_all_keys=False) == {'y': 2, 'x': 1}
+    assert d_trans_keys(d, m, False) == {'y': 2, 'x': 1}
+ finally: globals().update(locals())
+
+test_d_funcs()
 
 
 
