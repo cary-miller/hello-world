@@ -8,40 +8,43 @@ from coroutine import coroutine
 # data into one (target)
 
 import time
-def follow(thefile, target):
+def follow(thefile, f_target):
     thefile.seek(0,2)      # Go to the end of the file
     while True:
          line = thefile.readline()
          if not line:
              time.sleep(0.1)    # Sleep briefly
              continue
-         target.send(line)
+         f_target.send(line) # send to a coroutine.
 
 # A filter.
 @coroutine
-def grep(pattern,target):
+def grep(pattern, f_target):
     while True:
         line = (yield)           # Receive a line
         if pattern in line:
-            target.send(line)    # Send to next stage
+            f_target.send(line)    # Send to next stage
+
+
+
 
 # A sink.  A coroutine that receives data
 @coroutine
 def printer():
     while True:
-         line = (yield)
+         line = (yield) # target.send lands here
          print line,
 
 # Broadcast a stream onto multiple targets
 @coroutine
-def broadcast(targets):
+def broadcast(l_targets):
     while True:
-        item = (yield)
-        for target in targets:
-            target.send(item)
+        item = (yield) # target.send lands here
+        for f_target in l_targets:
+            f_target.send(item) # send to another coroutine.
 
 # Example use
-if __name__ == '__main__':
+def b_cast1():
     f = open("access-log")
     follow(f,
        broadcast([grep('python',printer()),
@@ -54,7 +57,7 @@ if __name__ == '__main__':
 # An example of broadcasting a data stream onto multiple coroutine targets.
 # This example shows "fan-in"---a situation where multiple coroutines
 # send to the same target.
-if __name__ == '__main__':
+def b_cast2():
     f = open("access-log")
     p = printer()
     follow(f,
