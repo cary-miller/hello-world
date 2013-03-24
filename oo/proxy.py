@@ -1,8 +1,5 @@
 
 
-
-
-
 class Proxy(object):
     '''A class that wraps an existing object overriding the
     __getattribute__ method.
@@ -34,7 +31,6 @@ def test_proxy():
         assert op.blah == 'blah' # Also has new attributes.
         # TODO  What happens if I add a method?
     finally: globals().update(locals())
-
 
 
 
