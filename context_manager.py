@@ -1,20 +1,4 @@
-
-
-
 import time
-
-
-@memo
-def goo():
-    print 'hello from goo'
-    return 44
-assert goo.data==None
-goo()
-assert goo.data==None
-goo.parasite()
-assert goo.data==2
-
-
 
 
 class ctx_mgr(object):
@@ -51,13 +35,12 @@ import inspect
 def foo():
      felf = globals()[inspect.getframeinfo(inspect.currentframe()).function]
      print felf.__name__, felf.__doc__
-     felf.__name__ = 'dick'
+     felf.__name__ = 'rick'
 
 import sys
 def bar():
      felf = globals()[sys._getframe().f_code.co_name]
      print felf.__name__, felf.__doc__
-
 
 
 
