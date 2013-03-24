@@ -31,12 +31,15 @@ head = data[0]
 data = data[1:]
 
 
-
 def stringify(thing):
-    if thing is None: return '-'                     # None
-    if type(thing) == str: return thing         # string
+    if thing is None: return '-'             # None
+    if type(thing) == str: return thing      # string
     if type(thing) == int: return str(thing) # int
     return thing
+
+import types
+def identity(thing): return thing
+
 
 
 
@@ -44,7 +47,8 @@ def delimited(data,
     row_delim='\n', 
     col_delim='\t', 
     cell_func=lambda x:x, 
-    row_func=lambda x:x):
+    row_func=lambda x:x
+    ):
     return row_delim.join([col_delim.join(row_func(
         cell_func(col) for col in row)) for row in data])
 
