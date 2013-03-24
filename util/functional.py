@@ -3,8 +3,8 @@ Functional programming code.  Includes plenty of decorators.
 Works with Python 2.4+
 Starts with Mertz's page of functional code at the beginning of
 *Text Processing with Python*
-Improves and modernizes Mertz's code.  Mertz wanted backward-compatibility all the way to 2.0
-or something and I only want back to 2.4.
+Improves and modernizes Mertz's code.  Mertz wanted backward-compatibility
+all the way to 2.0 or something and I only want back to 2.4.
 
 '''
 
@@ -46,7 +46,8 @@ def end_front(seq):
 
 
 # Modernized versions of Mertz's functional code from *Text Processing with Python*
-# A lot of his stuff is superceded by builtins; bool, all, any.
+# A lot of his stuff is superceded by builtins; bool, all, any, list comprehensions,
+# ...
 ident = lambda x: x
 bools = lambda lst: [bool(ob) for ob in lst]
 bools = lambda lst: map(bool, lst)
@@ -384,6 +385,12 @@ def test_d_funcs():
  finally: globals().update(locals())
 
 test_d_funcs()
+
+
+
+
+
+
 
 
 
