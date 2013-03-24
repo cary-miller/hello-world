@@ -1,8 +1,9 @@
-
-# A class with a write method for simulating a file open for writing.
-# Could be useful in a pipeline?  Is possible to do same with attaching a
-# write method to a function?  Of course.  How about a function that
-# attaches a write method to itself?
+'''
+A class with a write method for simulating a file open for writing.
+Could be useful in a pipeline?  Is possible to do same with attaching a
+write method to a function?  Of course.  How about a function that
+attaches a write method to itself?
+'''
 
 class Fileish(object):
     '''
