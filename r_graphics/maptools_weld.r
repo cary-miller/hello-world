@@ -17,12 +17,20 @@ library(ggplot2)
 # install.packages("rgdal")
 
 shp.dir = '~/data/shp/county/WELD/'
-fname = 'HIGHWAYS'
 ext = '.shp'
+fn = function(name) paste(shp.dir, name, ext, sep='')
 
-fn = paste(shp.dir, fname, ext, sep='')
-fname = 'LAKES'
-fn2 = paste(shp.dir, fname, ext, sep='')
+
+magic.df = function(ob, obname){
+    ob@data$id = rownames(ob@data)
+    ob.points = fortify(ob, region='id')
+    ob.df = join(ob.points, ob@data, by="id")
+    ob.df$type = obname
+    return (ob.df)
+}
+# TODO
+#   either name from object or
+#   object from name
 
 
 f1 = function() {
@@ -30,49 +38,36 @@ f1 = function() {
 #    readShapePoly
 #    readShapePoints
 #    readShapeLines
-    hwy = readShapeLines(fn)  # slow
-    lake = readShapePoly(fn2)  # slow
-    county =readShapeSpatial( paste(shp.dir, 'COUNTIES', ext, sep='') )
-    county =readShapePoly( paste(shp.dir, 'COUNTIES', ext, sep='') )
-    city =readShapePoly( paste(shp.dir, 'CITIES', ext, sep='') )
-    major_roads = readShapeLines( paste(shp.dir, 'MAJOR_ROADS', ext, sep='') )
+    hwy         = readShapeLines( fn('HIGHWAYS') )
+    lake        = readShapePoly( fn('LAKES') )
+    county      = readShapeSpatial( fn('COUNTIES') ) ######
+    county      = readShapePoly( fn('COUNTIES') )
+    city        = readShapePoly( fn('CITIES') )
+    major_roads = readShapeLines( fn('MAJOR_ROADS') )
 
+    lake.df        = magic.df(lake, 'lake')
+    county.df      = magic.df(county, 'county')
+    hwy.df         = magic.df(hwy, 'hwy')
+    major_roads.df = magic.df(major_roads, 'major_roads')
+    city.df        = magic.df(city, 'city')
+
+
+    ba = slotNames(lake)
+    ba = slotNames(lake@polygons[[1]])  # ok
+    ba = slotNames(lake@polygons[1])  # fails
 
     ba = lake@class
     ba = lake@data
     ba = lake@polygons
 
-    lake@data$id = rownames(lake@data)
-    lake.points = fortify(lake, region='id')
-    lake.df = join(lake.points, lake@data, by="id")
-    lake.df$type = 'lake'
-
-    county@data$id = rownames(county@data)
-    county.points = fortify(county, region='id')
-    county.df = join(county.points, county@data, by="id")
-    county.df$type = 'county'
-
-    hwy@data$id = rownames(hwy@data)
-    hwy.points = fortify(hwy, region='id')
-    hwy.df = join(hwy.points, hwy@data, by="id")
-    hwy.df$type = 'hwy'
-
-    major_roads@data$id = rownames(major_roads@data)
-    major_roads.points = fortify(major_roads, region='id')
-    major_roads.df = join(major_roads.points, major_roads@data, by="id")
-    major_roads.df$type = 'major_roads'
-
-
-    city@data$id = rownames(city@data)
-    city.points = fortify(city, region='id')
-    city.df = join(city.points, city@data, by="id")
-    city.df$type = 'city'
 
 
 
-    x.grid = seq(400,700,25) * 1000
-    y.grid = seq(440,455,5) * 10000
 
+#    x.grid = seq(400,700,25) * 1000
+#    y.grid = seq(440,455,5) * 10000
+
+    # Generate fake data to plot.
     n = 500
     f = 2
     well.x = (530 + f*7*rnorm(n)) * 1000
@@ -84,8 +79,8 @@ f1 = function() {
     ggplot(county.df) + 
         theme_bw() +   # white background
         # Remove grid lines and tick marks.
-        scale_x_continuous(breaks=NA, name='') +
-        scale_y_continuous(breaks=NA, name='') +
+        scale_x_continuous(breaks=NULL, name='') +
+        scale_y_continuous(breaks=NULL, name='') +
 
         aes(long,lat,group=group) + 
         geom_polygon(data=city.df, color='gray70', alpha=.1) + 
@@ -96,6 +91,9 @@ f1 = function() {
         geom_line(data=major_roads.df, color='tan') + 
         geom_line(data=hwy.df, color='brown') +
         geom_point(data=well.df, color='red', alpha=0.3)
+        # Amazing!
+        # I'm plotting bunches of data frames without naming any of their
+        # individual columns.  The *aes* call does it all.
 
 }
 
@@ -103,6 +101,42 @@ if (0){
 quartz.options(bg='white')
 quartz.save('gis.ggplotx.png')
 }
+
+
+library('rgdal')
+library('maptools')
+library('ggplot2')
+# http://rgm2.lab.nig.ac.jp/RGM2/func.php?rd_id=rgdal:readOGR
+dsn = '/Users/marymiller/data/shp/county/WELD'  #yes
+
+f3 = function(){
+    # It works now.
+    layer = 'AIRPORTS'
+    layer = 'LAKES'
+    bla = ogrInfo(dsn=dsn, layer=layer)
+    lago = readOGR(dsn=dsn, layer=layer)
+    lago@data$id = rownames(lago@data)
+    lago.points = fortify(lago, region="id")
+    lago.df = join(lago.points, lago@data, by="id")
+
+# http://gis.stackexchange.com/
+# http://gis.stackexchange.com/questions/21566/gis-r-and-shapefiles
+# http://cran.r-project.org/web/views/Spatial.html
+# sp package
+# http://examples.oreilly.com/9780596008659/  web mapping illustrated
+    ba = slotNames(lago@polygons[[1]]@Polygons[[1]])
+    
+    # Try again the KML file.
+    dsn = '/Users/marymiller/data/fire'  #?
+    layer = 'ActiveFirePerimeters_2012_07_03' #.kml
+    layer = 'ActiveFirePerimeters_2012_07_03.kml' 
+    bla = ogrInfo(dsn=dsn, layer=layer) # cannot open file
+    # https://stat.ethz.ch/pipermail/r-sig-geo/2009-January/004760.html
+    # gdal/rgdal/ogr built with expat parser ??????
+
+}
+# http://mikemainguy.blogspot.com/2011/10/gorillarinas-putting-agile-skirt-on.html
+
 
 
 f2 = function (){

@@ -1,157 +1,120 @@
+# setwd('git-repos/hello-world/r_graphics')
 
-library(raster)
-library(rasterVis)
-library(colorspace)
-
-
-ext <- extent(65, 135, 5, 55)
-
-if (0){
-    # 
-    # 875430rgb-167772161.0.FLOAT.TIFF
-    pop <- raster('data/875430rgb-167772161.0.FLOAT.TIFF')
-    pop <- crop(pop, ext)
-    pop[pop==99999] <- NA
-    pTotal <- levelplot(pop, zscaleLog=10, par.settings=BTCTheme)
-    pTotal
-}
-
-
-
+library(plyr)
 library(maps)
 library(mapproj)
+library(mapdata)
+data(county.fips)  # maps: fips code to county.name
+data(state.fips)  
 colors = floor(runif(63)*657)
-if (1){
-    map("state", col = colors, fill = T, resolution = 0)
-    map("state", col = colors, fill = T, projection = "polyconic", resolution = 0)
+world.sub = c('USA', 'USA:Alaska', 'Mexico', 'Canada')
+
+
+
+
+
+map.ds = function() {
+}
+if (T){
+    # map function returns a data structure.
+    country.names = map("world")$names
     state.names = map("state")$names
-
     county.names = map("county")$names
-    map("county", col = colors, fill = T, projection = "polyconic", resolution = 0)
+    state = map("state")
 
-    map("county", 'colorado,weld', col = colors, fill = T, projection = "polyconic", resolution = 0)
-
-}
-library(plyr)
-library(rgdal)
-library(maptools)
-library(ggplot2)
-library(rgeos)
-library(gpclib)
-gpclibPermit() # => fortify
-# package rgdal
-# On the Mac, the package resides on the “CRAN Extras” repository where
-# difficult-to-compile packages can sometimes be found.  On the Mac, rgdal
-# is installed as follows
-# setRepositories(ind=1:2)
-# install.packages("rgdal")
-# 
-# http://geography.uoregon.edu/geogr/topics/maps.htm
-
-shp.dir = '/Users/marymiller/data/shp/county/WELD/'
-fname = 'HIGHWAYS'
-ext = '.shp'
-
-fn = paste(shp.dir, fname, ext, sep='')
-fname = 'LAKES'
-fn2 = paste(shp.dir, fname, ext, sep='')
-
-
-if (1){
-#    readShapeSpatial
-#    readShapePoly
-#    readShapePoints
-#    readShapeLines
-    hwy = readShapeLines(fn)  # slow
-    lake = readShapePoly(fn2)  # slow
-    county =readShapeSpatial( paste(shp.dir, 'COUNTIES', ext, sep='') )
-    county =readShapePoly( paste(shp.dir, 'COUNTIES', ext, sep='') )
-    city =readShapePoly( paste(shp.dir, 'CITIES', ext, sep='') )
-    major_roads = readShapeLines( paste(shp.dir, 'MAJOR_ROADS', ext, sep='') )
-
-
-    ba = lake@class
-    ba = lake@data
-    ba = lake@polygons
-
-    lake@data$id = rownames(lake@data)
-    lake.points = fortify(lake, region='id')
-    lake.df = join(lake.points, lake@data, by="id")
-    lake.df$type = 'lake'
-
-    county@data$id = rownames(county@data)
-    county.points = fortify(county, region='id')
-    county.df = join(county.points, county@data, by="id")
-    county.df$type = 'county'
-
-    hwy@data$id = rownames(hwy@data)
-    hwy.points = fortify(hwy, region='id')
-    hwy.df = join(hwy.points, hwy@data, by="id")
-    hwy.df$type = 'hwy'
-
-    major_roads@data$id = rownames(major_roads@data)
-    major_roads.points = fortify(major_roads, region='id')
-    major_roads.df = join(major_roads.points, major_roads@data, by="id")
-    major_roads.df$type = 'major_roads'
-
-
-    city@data$id = rownames(city@data)
-    city.points = fortify(city, region='id')
-    city.df = join(city.points, city@data, by="id")
-    city.df$type = 'city'
-
-
-
-    x.grid = seq(400,700,25) * 1000
-    y.grid = seq(440,455,5) * 10000
-
-    n = 500
-    f = 2
-    well.x = (530 + f*7*rnorm(n)) * 1000
-    well.y = (450 + f*1*rnorm(n)) * 10000
-    well.x = well.x + (well.y-min(well.y)) * 0.9
-    well.df = as.data.frame(cbind(well.x, well.y, as.factor(1)))
-    names(well.df) = c('long', 'lat', 'group')
-
-    ggplot(county.df) + 
-        theme_bw() +   # white background
-        # Remove grid lines and tick marks.
-        scale_x_continuous(breaks=NA, name='') +
-        scale_y_continuous(breaks=NA, name='') +
-
-        aes(long,lat,group=group) + 
-        geom_polygon(data=city.df, color='gray70', alpha=.1) + 
-        geom_path(color='black') +
-        coord_equal() +
-        scale_fill_brewer("") +
-        geom_polygon(data=lake.df, color='blue') +
-        geom_line(data=major_roads.df, color='tan') + 
-        geom_line(data=hwy.df, color='brown') +
-        geom_point(data=well.df, color='red', alpha=0.3)
-
+    # If we search for a country name we get a huge number of hits because
+    # each non-contiguous part of the country gets its own row.
+    usa = grep('^USA', country.names)  # n>130
+    usa = grep('^USA$', country.names)  # 1
+    ak = grep('^USA:Alaska$', country.names)  # 1
+    mex = grep('^Mexico', country.names)  # n == 27
+    mex = grep('^Mexico$', country.names)  # n == 1
+    can = grep('^Canada$', country.names)  # n
 }
 
-if (0){
-quartz.options(bg='white')
-quartz.save('gis.ggplotx.png')
+# http://en.support.wordpress.com/code/posting-source-code/
+
+############# Choropleth unemployment map for a few counties #####
+data(unemp)
+some.counties = c('colorado,weld', 'colorado,denver',
+    'colorado,adams', 'colorado,arapahoe', 'colorado,larimer', 
+    'colorado,jefferson', 
+    'colorado,douglas', 
+    'colorado,boulder') 
+
+
+choro_unemp = function(some.counties){
+    # fips data for some.counties
+    fips.co = county.fips[county.fips$polyname %in% some.counties,]
+
+    # unemployment rates for some.counties
+    un.co = unemp[unemp$fips %in% fips.co$fips,]
+
+    # Assign colors to counties.  Most of this code is undoing the
+    # 'helpful' autoconversion of character data to factor.
+    n = length(some.counties) - 1
+    cols = gray( seq(n/2, 0, -0.5)/n +.5)
+
+    new.df = cbind(un.co, fips.co$polyname, rep('a', dim(un.co)[1]))
+    # convert factors to character.
+    i <- sapply(new.df, is.factor)
+    new.df[i] <- lapply(new.df[i], as.character)
+
+    names(new.df) = c('fips', 'pop', 'unemp', 'name', 'col')
+    # The map function 'helpfully' converts data frame character vectors
+    # to factors whether you want it or not.  There are two ways to deal
+    # with it.
+    #  1.  Reorder the df to factor order. (as below).
+    #  2.  Plot vectors instead of data frame columns.
+    new.df = new.df[order(new.df$unemp),]
+    new.df$col=cols
+    new.df = new.df[order(new.df$name),]
+    map("county", new.df$name, col=new.df$col, fill=T)
+    map.text("county", new.df$name, add=T)
 }
 
 
-if (0){
-    #    da = SpatialPolygons(city)  # NO
-    #    blah = overlay(hwy, lake)
-    #    blah = rbind(hwy, lake)
-    #    blah = spRbind(hwy, lake) # NO. combining lines/polygons
-    #    blah = spRbind(county, lake) # NO. non-unique polygon ids.
-         # to fix use spChFIDs from maptools.
-    #    blah = spRbind(spChFIDs (county), spChFIDs (lake)) # NO. 
-    #    blah = rbind.SpatialPolygons(county, lake) # NO. non-unique ids.
-        blah = rbind.SpatialPolygons(county, lake, city, makeUniqueIDs=TRUE) # yes!
-        # makeUniqueIDs works but preferred to use spChFIDs.
-        plot(blah)
-        lines(hwy, col='red')
-    #    plot(lake, col='blue')
+county.by.name = function(){
+    # Color code counties by name
+    # Lincoln == blue
+    # Washington == red
+    # other == black
+    color.code = rep('black', length(county.names))
+    color.code = rep('white', length(county.names))
+    wash = grep('washington$', county.names) # n==32
+    color.code[wash] = 'red'
+    linc = grep('lincoln$', county.names) # n==24
+    color.code[linc] = 'blue'
+    map("county", col=color.code, fill=T)
+#    map("county", col=color.code, fill=T, projection="polyconic")
 }
 
+
+color.mich = function(){
+    # Color code Michigan
+    color.code = rep('black', length(state.names))
+    mich = grep('^michigan', state.names)
+    color.code[mich] = 'green'
+    map("state", col=color.code, fill=T, projection="polyconic")
+}
+
+hi.res = function(){
+    # Plot world map and then subsets.
+    map("world")
+    country.names = map("world")$names
+
+    map("world", col = colors, fill = T)
+    names = map("world", world.sub, col = colors, fill = T)$names
+    # High Resolution
+    map("worldHires", world.sub, exact=T, col=colors, fill=T)
+    map.cities(pch='.')
+    map.text("world", world.sub, add=T, exact=T)
+}
+
+save.one = function(){
+    quartz.options(bg='white')
+    quartz.save('r_mapping_choro_n.png')
+    quartz.save('r_mapping_world_n.png')
+}
 
 
