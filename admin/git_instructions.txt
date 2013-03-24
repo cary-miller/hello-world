@@ -1,28 +1,54 @@
 
-    # adding new file
-cd repos
-touch fname
-git add fname
-git add *
+Daily use:
+
+# adding new file
+    cd repos
+    touch fname
+    git add fname
+    git add *
 
 
-git commit -m 'message here'
+git commit -m 'message here' fnames
 git push -u origin master
 
 
 -------------------------
 
-one-time code per repository ???
-git remote add origin git@github.com:cary-miller/hello-world.git
-follows first commit.
-# darn it!
-# Used the above one-time code on conway and it requires
-# username+password with every push.
+To create a repository:
+  ** NOTE **
+  ** NOTE **
+  ** on the git-hub website it has a step that has you doing: **
+  ** !!!!!!!!!!!!!!!! THIS IS COMPLETE CRAP !!!!!!!!!!!!!!!!  **
+  git remote add origin https://github.com/username/Hello-World.git
+  ** !!!!!!!!!!!!!!!! THIS IS COMPLETE CRAP !!!!!!!!!!!!!!!!  **
+  ** If you do that you will have to **
+  ** give username+password !!!!! FOR EVERY DAMN PUSH !!!!!!! **
+  ** Instead do this:
+    git remote add origin git@github.com:cary-miller/hello-world.git
+  ** NOTE **
+  ** NOTE **
 
-http://stackoverflow.com/questions/6565357/git-push-requires-username-and-password
+
+To create a repository:
+    You have to come at it from both ends.  You create a repo
+    on git-hub.  Also create a repo locally.  Then the command
+    above ties them together.  Here is the entire procedure.
+
+1.  On git-hub, create a repo.  It is easy.
+2.  Locally there is more work.
+    cd git-repo
+    mkdir bar
+    cd bar
+    git init
+    vim README
+    git add README
+    git commit -m 'foo' README
+    git remote add origin git@github.com:cary-miller/bar.git 
+    git push -u origin master
+3.  Local changes should now show up on git-hub.
 
 
-
+* related:  Same thing when cloning.
 http://stackoverflow.com/questions/5813726/troubleshooting-git-push-it-asks-for-a-user-pass?rq=1
 sez
 this occurs because you did
@@ -30,7 +56,7 @@ this occurs because you did
     git clone https://github.com/username/repo
     instead of
 
-        git clone git@github.com:username/repo.git
+    git clone git@github.com:username/repo.git
 
 
 
