@@ -1,22 +1,11 @@
 
-
-
-hello this is the readme file.
-committing it.
-
-
------------------------------
-instructions for updating. ???
-
-
-& adding new file. ??
-
+    # adding new file
 cd repos
 touch fname
 git add fname
-
-
 git add *
+
+
 git commit -m 'message here'
 git push -u origin master
 
@@ -26,6 +15,23 @@ git push -u origin master
 one-time code per repository ???
 git remote add origin git@github.com:cary-miller/hello-world.git
 follows first commit.
+# darn it!
+# Used the above one-time code on conway and it requires
+# username+password with every push.
+
+http://stackoverflow.com/questions/6565357/git-push-requires-username-and-password
+
+
+
+http://stackoverflow.com/questions/5813726/troubleshooting-git-push-it-asks-for-a-user-pass?rq=1
+sez
+this occurs because you did
+
+    git clone https://github.com/username/repo
+    instead of
+
+        git clone git@github.com:username/repo.git
+
 
 
 
