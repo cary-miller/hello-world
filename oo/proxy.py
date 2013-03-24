@@ -32,6 +32,7 @@ def test_proxy():
         op.seek(0)
         assert op.read() == 'hello' # Behaves as a file object.
         assert op.blah == 'blah' # Also has new attributes.
+        # TODO  What happens if I add a method?
     finally: globals().update(locals())
 
 
