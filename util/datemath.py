@@ -1,3 +1,7 @@
+'''
+Handy date functions.
+'''
+
 import datetime
 import time
 
@@ -42,7 +46,7 @@ class my_dt(datetime.datetime):
         return last_day_of_month(self)
         
 
-if 0:
+def test_datemath():
     dt = datetime.datetime.today()
     d1 = add_months(dt, -2)   # datetime
 
