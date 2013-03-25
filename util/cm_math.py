@@ -146,6 +146,14 @@ def dot_product(v1, v2):
 	return sum (a*b for (a,b) in  zip(v1,v2))
 
 
+# TODO  roots
+# Damn!  Where is that root finding code?!!!!!!!!!!?
+# A.  It's in erlang!
+
+
+# TODO  move this code
+# TODO  move this code
+# TODO  move this code
 
 def test_elementwise():
     try:
@@ -179,8 +187,6 @@ arr.sort(key=lambda x: x%2)
 
 
 
-# Damn!  Where is that root finding code?!!!!!!!!!!?
-# A.  It's in erlang!
 
 
 
