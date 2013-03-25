@@ -100,7 +100,6 @@ def composeRarb(*funcs):
  
  
 def composeR_test():
- try:
     f = lambda x: x+2
     g = lambda x: x*2
     h = lambda x: x**2
@@ -109,11 +108,9 @@ def composeR_test():
     assert composeR(f)(x) == f(x)  == composeTR(f)(x) 
     assert composeR(f,g)(x) == f(g(x))  ==  composeTR(f,g)(x) 
     assert composeR(f,g,h)(x) == f(g(h(x)))  ==  composeTR(f,g,h)(x)
- finally: globals().update(locals())
 
 
 def composeRarb_test():
- try:
     f = lambda d: str(d['b']) + 'fffffffooooo'
     g = lambda (x,y): dict(a=x,b=y)
     h = lambda x: (x,2)
@@ -122,7 +119,6 @@ def composeRarb_test():
     assert composeRarb(h)(x) == h(x)
     assert composeRarb(g,h)(x) == g(h(x))
     assert composeRarb(f,g,h)(x) == f(g(h(x)))
- finally: globals().update(locals())
 
 
 composeR_test()
@@ -146,7 +142,6 @@ bool_each = lambda *funcs: lambda  *pos, **kw: bools(apply_each(funcs)(*pos, **k
 
 
 def testing(): # TODO rename
- try:
     def f(): return 1
     def g(): return 'a'
     def h(): return {'a':3}
@@ -180,12 +175,11 @@ def testing(): # TODO rename
     assert  apply_each(f,g,h)(3, 4, f=lambda x: x*2, g=11) == \
             apply_each(f,g,h)(3, 4, g=11, f=lambda x: x*2)
     # oops, mertz can't handle this, haha.
- finally: globals().update(locals())
+
 testing()
 
 
 def a():
- try:
     def t(): return True
     def f(): return False
     assert and_(t,t,t)() == True
@@ -207,12 +201,10 @@ def a():
     assert or_(t,t,f)(0,1,a='',b=2) == True
     assert or_(f,f,f)(0,1,a='',b=2) == False
 
- finally: globals().update(locals())
 a()
 
 
 def foooo():
- try:
     # Not sure why this is here.  Tests the original simple compose.
     p2 = lambda x: x**2
     a2 = lambda x: x+2
@@ -230,7 +222,6 @@ def foooo():
     lst = [0, 1, [], [0], (), (0,), {}, {'z':0}, False, True]
 
     #assert disjoin([ident], lst) == any(bool_each([ident], lst))
- finally: globals().update(locals())
 foooo()
 
 
@@ -291,7 +282,6 @@ def elementwise(fn):
     return newfn
 
 def test_elementwise():
- try:
     @elementwise
     def sq(x): return x**2
     sq = elementwise(lambda x:x**2)
@@ -302,7 +292,6 @@ def test_elementwise():
     assert sq(set((1,2,3))) == [1, 4, 9]
  finally: globals().update(locals())
 
-test_elementwise()
 
 
 def sequencify(func):
@@ -385,11 +374,6 @@ def test_d_funcs():
  finally: globals().update(locals())
 
 test_d_funcs()
-
-
-
-
-
 
 
 
