@@ -1,12 +1,13 @@
+'''
+Number theoretic functions; primes, gcd, lcm, factors,
+several versions of factorial.
 
+'''
 from decorators import memoize_
-from functional import (elementwise, flatten,
-    propagate_iter)
-
+from functional import (elementwise, flatten, propagate_iter)
 
 import numpy
 import operator
-from e_ast import globalize, globalizeA
 
 def product(lst):
     '''similar to builtin sum.
@@ -18,9 +19,6 @@ def product(lst):
 
 
 
-
-#@memoize_(timeout=60*60*24)  # daily refresh
-@globalize
 def primes(max_p):
     # Find all primes <= max_p
     prms = []
@@ -35,12 +33,13 @@ def primes(max_p):
 
 
 
-#@globalizeA
 def gprimes(max_p):
-    # Generator to return all primes <= max_p.
-    # Start with everything being a candidate for primehood.
-    # When we find a prime remove it and all its multiples from the
-    # candidate list.
+    '''
+    Generator to return all primes <= max_p.
+    Start with everything being a candidate for primehood.
+    When we find a prime remove it and all its multiples from the
+    candidate list.
+    '''
     candidates = range(2, max_p+1)
     while candidates:
         nextp = candidates[0]
@@ -50,9 +49,10 @@ def gprimes(max_p):
 
 
 
-
 def is_prime(n):
     return len(factors(n)) == 1
+
+
 
 @memoize_(timeout=30)
 def factors(n):
@@ -68,19 +68,6 @@ def factors(n):
             else:
                 prms.remove(p)
     return sorted(f)
-
-
-# TODO not really a math function.
-@memoize_(timeout=60*60*24)
-def reps(seq):
-    '''For each item in set(seq) count the number of occurences.
-    '''
-    count = []
-    for ob in set(seq):
-        count.append((ob, seq.count(ob)))
-    return count
-
-
 
 
 
@@ -106,7 +93,6 @@ def lcf(a,b):
 
 
 
-
 def smallest_common_multiple(a,b):
     '''
     >>> # remove largest common factor
@@ -116,6 +102,7 @@ def smallest_common_multiple(a,b):
     150
     '''
     return (a*b)/lcf(a,b)
+
 
 
 def factorial(n):
@@ -153,6 +140,12 @@ def avg_nonNone(seq): return avg(x for x in seq if x)
 def avg_nznn(seq): return avg(x for x in seq if x and x!=0)
 
 
+# Of course one should not use this dot product when numpy already has
+# one.
+def dot_product(v1, v2):
+	return sum (a*b for (a,b) in  zip(v1,v2))
+
+
 
 def test_elementwise():
     try:
@@ -186,12 +179,20 @@ arr.sort(key=lambda x: x%2)
 
 
 
-# Of course one should not use this dot product when numpy already has
-# one.
-def dot_product(v1, v2):
-	return sum (a*b for (a,b) in  zip(v1,v2))
-
-
 # Damn!  Where is that root finding code?!!!!!!!!!!?
 # A.  It's in erlang!
+
+
+
+# TODO not really a math function.
+@memoize_(timeout=60*60*24)
+def reps(seq):
+    '''For each item in set(seq) count the number of occurences.
+    '''
+    count = []
+    for ob in set(seq):
+        count.append((ob, seq.count(ob)))
+    return count
+
+
 
