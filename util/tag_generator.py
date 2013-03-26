@@ -1,3 +1,6 @@
+'''
+xml tagging functions.
+'''
 
 def tag(name, **attrs):
     """Return a function that creates tag `name`
@@ -40,4 +43,24 @@ def tag(name, **attrs):
         return "<%s%s>%s</%s>" %(name,att_list,content,name)
     f.__name__ = name
     return f
+
+
+
+
+def tags_from_lists(nested_list):
+    '''
+    Borrow the lisp idea of generating xml from s-expressions.
+    Take input data that looks like s-expressions, ie. nested lists, and
+    convert to nested tags w/wo attributes.
+    sample data:
+    === 1 tag ===
+    (('tagname', 'content'))
+    (('bodytext', 'yoohoo'), ('attr1', 'gosh'), ('attr2', 'blarney'))
+    === 2 tag ===
+    (('tagname', (('inner_tag1', 'inner1')))
+    ... etc
+    '''
+    return nested_list
+
+
 
