@@ -54,3 +54,14 @@ def test_ExpiringQueue():
 
 
 
+# watch the list.  If it is long we need lots of processes.
+# If it goes to zero we need none.
+
+# Alternative.  A watcher that turns itself off if no message for n
+# seconds.
+
+# Alternative.  A watcher that spawns one of these self-limiting functions
+# every t seconds but only up to Max.
+
+
+
