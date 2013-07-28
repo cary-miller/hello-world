@@ -54,3 +54,42 @@ def fetch_cols(csv_string, indices, ifs=',', ils='\n', ofs=',', ols='\n'):
             for line in csv_string.split(ils) if line)
 
 
+
+
+def dups(lst):
+    ''' 
+    >>> dups(list('abcdeabcab'))
+    ['a', 'b', 'c']
+    '''
+    return [item for item in set(lst) if lst.count(item) > 1]
+
+
+
+
+
+def head_tail(lst):
+    return (lst[0], lst[1:])
+    # just like lisp would do #
+    # except it applies to strings and any sequence
+
+def tail_head(lst):
+    return (lst[:-1], lst[-1])
+
+
+
+
+
+def find_gaps(seq):
+    ''' 
+    Show gaps in seq by returning pairs surrounding missing
+elements.
+    >>> find_gaps([1,2,3,5,6,7,22,23])
+    [(3, 5), (7, 22)]
+    '''
+    gap = []
+    for i in range(1, len(seq)):
+        if seq[i] != seq[i-1]+1:
+            gap.append((seq[i-1], seq[i]))
+    return gap 
+
+

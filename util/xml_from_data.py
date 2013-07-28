@@ -162,3 +162,42 @@ import re
 
 
 
+
+def tag(name, content=None, attributes=None):
+    '''
+    >>> attributes = [['bum', 'nub'], ['rum', 'blum']]
+
+    >>> tag('foo', 'bark')
+    '<foo>bark</foo>'
+
+    >>> tag('foo', ['bark'])
+    '<foo>bark</foo>'
+
+    >>> tag('foo', ['bark', 'nark'])
+    '<foo>bark</foo><foo>nark</foo>'
+
+    >>> tag('foo', 'bark', attributes)
+    '<foo bum="nub" rum="blum">bark</foo>'
+
+    >>> tag('foo')
+    '<foo/>'
+
+    >>> tag('foo', attributes=attributes)
+    '<foo bum="nub" rum="blum"/>'
+    '''
+    att = ''
+    if attributes:
+        att = ' ' + ' '.join('%s="%s"' %(name,val) for [name,val] in
+attributes)
+    if content is None:
+        return '<%(name)s%(att)s/>' %locals()
+    if type(content) is list:
+        return '\n'.join([tag(name, sub, attributes) for sub in
+content])
+    return '<%(name)s%(att)s>%(content)s</%(name)s>' %locals()
+
+
+def concat(*lst): return '\n'.join(lst)
+
+
+

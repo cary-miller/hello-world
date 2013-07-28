@@ -40,5 +40,28 @@ def test_d_funcs():
 test_d_funcs()
 
 
+def dict_transform(dct, func):
+    '''
+    Apply func to each dict value.
+    '''
+    new_dct = {}
+    for key in dct:
+        new_dct[key] = func(dct[key])
+    return new_dct
+
+
+def ordered_items(dct, keys):
+    '''Return dct.items ordered by keys.
+    keys = ['action', 'ok', 'client_url', 'client']
+    d2 = {'action': 'UPLOAD', 'client_url': '111.22.220.222', 'client': 'xyz', 'ok': 'OK'}
+    >>> ordered_items(d2, keys)
+    [('action', 'UPLOAD'), ('ok', 'OK'), ('client_url', '111.22.220.222'), ('client', 'dsi')]
+    '''
+    d2 = subdict(dct, keys)
+    f = lambda (key, _): dict(zip(keys, range(len(keys))))[key]
+    return sorted(d2.items(), key=f)
+
+
+
 
 
