@@ -200,4 +200,29 @@ content])
 def concat(*lst): return '\n'.join(lst)
 
 
+from util import head_tail
+
+tag_gen = ''' 
+def %(name)s(*a):
+    """
+    >>> %(name)s(content, *attributes):
+    attributes must be pairs, eg ['type', 'submit']
+    """
+    try:
+        return tag("%(name)s", *head_tail(a))
+    except IndexError: # no content
+        return tag("%(name)s")
+'''
+
+
+for name in '''html head body title script style h1 p
+    foo bar bat
+    table tr td th
+    form select option input button
+    div pre hr
+    '''.split():
+
+    exec(tag_gen %locals())
+
+
 
