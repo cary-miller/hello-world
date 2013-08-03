@@ -226,3 +226,118 @@ for name in '''html head body title script style h1 p
 
 
 
+
+
+op_tag = lambda name, val: tag('option', val, [('value', val),
+('name', name)])
+op_tag_list = lambda name, val_list: '\n'.join([
+    op_tag(name, v) for v in val_list])
+
+checkbox = lambda name, val: tag('input', val,  attributes=[ 
+    ('type', "checkbox"), ('class', name), ('value', val)])
+
+checkbox_list = lambda name, val_list: '\n'.join([
+    checkbox(name, v) for v in val_list])    
+
+radio = lambda name, val: tag('input', val,  attributes=[ 
+    ('type', "radio"), ('name', name), ('value', val)])
+
+radio_list = lambda name, val_list: '\n'.join([
+    radio(name, v) for v in val_list])    
+
+
+
+head = head( concat(
+    title('proto'),
+    script(' ', 
+        ["type","text/javascript"],
+        ["src","http://code.jquery.com/jquery-2.0.2.js"]),
+    script(jscode,  ["type","text/javascript"]),
+#    script(dsjs,  ["type","text/javascript"]),
+    script(morejs,  ["type","text/javascript"]),
+    style(csscode,  ["type","text/css"]),
+    
+))
+ = 'ticket date docid xxxid'.split()
+columns = 'ticket date docid xxxid'.split()
+users = 'smith jones'.split()
+user_options = op_tag_list('user', users)
+case_options = op_tag_list('case', casenames())
+column_checks = checkbox_list('col_check', columns)
+column_radio = radio_list('col_radio', columns)
+
+
+
+
+
+
+table1 = table(concat(
+    tr(concat(
+        td('Case'),
+        td(select(case_options, ["id","da_case"])),
+        td(''),
+        )) ,
+    tr(concat(
+        td('User'),
+        td(select(user_options, ["id","da_user"])),
+        td(''),
+        )) ,
+#    tr(concat(
+#        td('Columns'),
+#        td(select(column_options, [["id","da_cols"]])),
+#        td(''),
+#        )) ,
+    tr(concat(
+        td(''),
+        td(input('', ["type","submit"], ["value","Go!"],
+["id","submit"])),
+        td(''),
+        )) ,
+        ))
+
+
+ort_controls = concat(p('Sort/Filter Controls'),
+    table(concat(
+
+    tr(concat(
+        td('Filter on:'),
+        td(div(column_radio , ["id","xfilter"])),
+        td(input('', ['type', 'text'], ['id', 'filter_val'])),
+        td(input('', ["type","submit"], ["value","Filter!"],
+            ["id","filter_submit"])),
+        )),
+
+    tr(concat(
+        td('Go back'),
+        td(input('', ["type","submit"], ["value","Previous Result"],
+            ["id","prev_result"])),
+        td(input('', ["type","submit"], ["value","Back to xxxx Selection"],
+            ["id","to_control1"])),
+
+        )),
+
+        )) # table
+        ) # sort_controls
+
+
+
+body = body( concat(
+    h1('xxxx document report'),
+    p('Info for docs that have been xxxxx for the yyyyyy.'),
+    form( table1, ["id","da_form"], ["method","post"] ),
+    hr(),
+    div( sort_controls,  ["id","div_sort"], ["class","hidden"] ),
+    hr(),
+    div(concat(
+        pre( 'output area', ['class', 'output1']),
+        pre( 'secondary output area', ['class', 'output2'])
+    ))
+    ,
+
+))
+
+header =  "Content-type: text/html\n\n"
+print header + html(head+body)
+
+
+
