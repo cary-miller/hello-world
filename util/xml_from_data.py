@@ -6,6 +6,8 @@
 # ############################################################ #
 
 
+def head_tail(seq):
+    return seq[0], seq[1:]
 
 def dict2xml(d):
     return '\n'.join( '<%s>%s</%s>' %(key,value,key)
@@ -200,7 +202,6 @@ content])
 def concat(*lst): return '\n'.join(lst)
 
 
-from util import head_tail
 
 tag_gen = ''' 
 def %(name)s(*a):
@@ -246,25 +247,33 @@ radio_list = lambda name, val_list: '\n'.join([
     radio(name, v) for v in val_list])    
 
 
+with open('data_structures.js') as fh: dscode = fh.read()
+with open('basic.js') as fh: jscode = fh.read()
+with open('basic.css') as fh: csscode = fh.read()
 
 head = head( concat(
     title('proto'),
     script(' ', 
         ["type","text/javascript"],
         ["src","http://code.jquery.com/jquery-2.0.2.js"]),
+    script(dscode,  ["type","text/javascript"]),
     script(jscode,  ["type","text/javascript"]),
-#    script(dsjs,  ["type","text/javascript"]),
-    script(morejs,  ["type","text/javascript"]),
     style(csscode,  ["type","text/css"]),
     
 ))
- = 'ticket date docid xxxid'.split()
-columns = 'ticket date docid xxxid'.split()
+
+
+
 users = 'smith jones'.split()
+casenames = 'case1 case2 case3 case4 case5'.split() 
 user_options = op_tag_list('user', users)
-case_options = op_tag_list('case', casenames())
-column_checks = checkbox_list('col_check', columns)
-column_radio = radio_list('col_radio', columns)
+case_options = op_tag_list('case', casenames)
+
+
+columns = 'ticket date docid xxxid'.split()
+column_checks = checkbox_list('col_check', columns) # for column subsetting.
+column_radio = radio_list('col_radio', columns) # for filtering on column values
+column_radio = radio('col_radio', 'any') # for filtering on column values
 
 
 
@@ -296,8 +305,17 @@ table1 = table(concat(
         ))
 
 
-ort_controls = concat(p('Sort/Filter Controls'),
+sort_controls = concat(p('Sort/Filter Controls'),
     table(concat(
+
+
+    tr(concat(
+        td('Chop head:'),
+        td(),
+        td(input('', ['type', 'text'], ['id', 'n_chop'])),
+        td(input('', ["type","submit"], ["value","Chop!"],
+            ["id","chop_submit"])),
+        )),
 
     tr(concat(
         td('Filter on:'),
@@ -306,6 +324,7 @@ ort_controls = concat(p('Sort/Filter Controls'),
         td(input('', ["type","submit"], ["value","Filter!"],
             ["id","filter_submit"])),
         )),
+
 
     tr(concat(
         td('Go back'),
@@ -337,7 +356,9 @@ body = body( concat(
 ))
 
 header =  "Content-type: text/html\n\n"
-print header + html(head+body)
+html_doc = header + html(head+body)
+with open('basic.html', 'w') as fh: fh.write(html_doc)
+#print html_doc
 
 
 

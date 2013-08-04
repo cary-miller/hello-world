@@ -1,4 +1,24 @@
 
+data_hx = [];
+
+function tag(name, content){
+    return "<"+name+">"+content+"</"+name+">";
+};
+
+function radio(name, value){
+    return $(tag("input", value))
+        .attr("type", "radio")
+        .attr("name", name)
+        .attr("value", value)
+        ;
+};
+
+function create_radio_buttons(){
+    names = col_names(get_current_result());
+    for (var i=0; i<names.length; i++){
+        $('#xfilter').append( radio('col_radio', names[i]));
+    }
+};
 
 function get_checked_cols(){
     var checked_arr = [];
@@ -12,7 +32,21 @@ function get_current_result(){
     return ($('.output1').contents()[0].data);
 };
 
+function get_current_names(){
+    return col_names(get_current_result());
+};
 
+
+function chop_current_result(){
+    // fetch inputs
+    current = get_current_result().split('\n');
+    n = $('#n_chop').val();
+    // alter data
+    head = current.slice(0, n).join('\n');
+    result = current.slice(n, current.length).join('\n');
+    // display result
+    display_result(result);
+};
 
 
 
@@ -22,10 +56,14 @@ function secondary_display(){
     var casename = $('#da_form select :selected')[0].text;
     var result_length = csv2obarray(  get_current_result()).length;
     result_length = 'total rows: ' + result_length;
+/*
     var stuff = current_tickets();
     stuff.push('tickets');
+*/
+    var stuff = [];
     stuff.push('\n');
     stuff.push('\n');
+
     stuff.push(result_length);
     stuff.push(casename);
     stuff.reverse();
@@ -38,12 +76,11 @@ function secondary_display(){
 function filter_on(colname, value){
     // Given colname and value, filter the current result set (as
     // a list of objects).
-    // Return the filtered sublisst.
+    // Return the filtered sublist.
     // filter_on('docid', '42')
 
-
     var current_obs = csv2obarray(  get_current_result());
-    res = [];
+    var res = [];
     for (var i=0; i<current_obs.length; i++){
         if (current_obs[i][colname].match(value))
             res.push(current_obs[i]);
@@ -52,17 +89,13 @@ function filter_on(colname, value){
 };
 
 
-
-
 function show_filtered(name, value){
     // Given colname and value, filter the current result set and
     // display.
     //     filtered = show_filtered('docid', 42);
     //     filtered = show_filtered('date', '15:41');
 
-
-
-    var names = ['ticket', 'date', 'docid', 'xxxxxid'];
+    var names = get_current_names();
     var filtered = filter_on(name, value);
     var body = ob_array2csv(filtered, names);
     var head = names.join(',');
@@ -92,7 +125,7 @@ function prev_result(){
 };
     
    
-function back_to_control1(event){
+function show_control1(event){
     // Make sort controls invisible, show case selection controls,
     // and clear the output displays.
     $('#div_sort').css('display', 'none');
@@ -102,58 +135,35 @@ function back_to_control1(event){
 };
 
 
+
 function get_json_result(event){
-    // Send form data to some url.
-    // Fetch the result as json data and make it available globally.
     event.preventDefault(); // !!!!!!! prevent page reload !!!!!!! //
-
-    var selected = $('#da_form select :selected');
-    var form_data = {};
-    for (var i=0; i<selected.length; i++) {
-        var thing = selected[i];
-        form_data[thing.attributes['name'].value] =  thing.value;
-        };  // form data acquired //
-
-
-    // Send working... message //
-    var work_message = 'working...';
-
-    var params = ['"'+form_data.case+'"', '"'+form_data.user+'"'].join(', ');
-    work_message = work_message + 'doc_report(' + params + ')';
-    console.log(work_message);
-    $('.output1').text(work_message);
-
-    // Send form data to some url and get the result asynchronously
-    // Result is available globally in var result_obj //
-
     thing = $.ajax({
         type: 'GET',
-        dataType: 'json',
-        data: form_data,
-        url: 'url_returning_json.cgi',
-
+        url: 'SPCS20RNSA.txt',
         success: function(returned_data, textStatus, jqXHR){
-            var result_obj = returned_data;
-            console.log(returned_data);
-            $('.output1').text( returned_data['result'] );
-            $('.output2').text( secondary_display() );
-            data_hx = [];
-            data_hx.push(returned_data['result'] );
-            $('#div_sort').css('display', 'block');
-            $('#da_form').css('display', 'none');
-        },
-        complete: function(jqXHR, textStatus){
-            var stuff = [jqXHR, textStatus];
+            console.log('success');
+            display_result(returned_data);
         },
     })
 };
 
 
+
+function display_result(s){
+    $('.output1').text( s );
+    $('.output2').text( secondary_display() );
+    data_hx.push( s );
+    $('#div_sort').css('display', 'block');
+    $('#da_form').css('display', 'none');
+};
+
+
+
+
 function import_code(event){
-
-url = '../icons/data_structures.js';
-
-   $.getScript(url, function(data, textStatus, jqxhr) {
+    url = '../icons/data_structures.js';
+    $.getScript(url, function(data, textStatus, jqxhr) {
         console.log(data); //data returned
         console.log(textStatus); //success
         console.log(jqxhr.status); //200
@@ -170,18 +180,14 @@ url = '../icons/data_structures.js';
                 gsettings = settings;
                 gexception = exception;
     });
-
 };
 
 
-function yoohoo(event){
-    console.log('yoohoo');
-};
-
+function yoohoo(event){ console.log('yoohoo'); };
 
 
 $(document).ready(function(){
-    import_code(event);  // data structures //
+//    import_code(event);  // data structures //
     yoohoo(event);
     setInterval(yoohoo , 1000*60); // every 1 min.
     // !!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -191,17 +197,10 @@ $(document).ready(function(){
     $('#submit').click( function(event){get_json_result(event);} );
     $('#filter_submit').click( function(event){go_filter(event);} );
     $('#prev_result').click( function(event){prev_result(event);} );
-    $('#to_control1').click( function(event){back_to_control1(event);});
+    $('#to_control1').click( function(event){show_control1(event);});
+    $('#chop_submit').click( function(event){chop_current_result(event);});
     
 });
     
-   
-
-
-
-
-
-
-
 
 
