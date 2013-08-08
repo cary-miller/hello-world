@@ -1,22 +1,20 @@
-from xml_from_data import tag, concat, tag_gen
+from xml_from_data import tag, concat, tag_gen, head_tail
 
 for name in '''html head body title script style h1 p
     foo bar bat
     table tr td th
     form select option input button
     div pre hr
+    g circle svg text
     '''.split():
 
     exec(tag_gen %locals())
 
 
+# ################### Composite tag functions ################### #
 
-
-
-op_tag = lambda name, val: 
-    tag('option', val, [('value', val), ('name', name)])
-op_tag_list = lambda name, val_list: 
-    '\n'.join([ op_tag(name, v) for v in val_list])
+op_tag = lambda name, val: tag('option', val, [('value', val), ('name', name)])
+op_tag_list = lambda name, val_list: '\n'.join([ op_tag(name, v) for v in val_list])
 
 checkbox = lambda name, val: tag('input', val,  attributes=[ 
     ('type', "checkbox"), ('class', name), ('value', val)])
@@ -32,7 +30,7 @@ radio_list = lambda name, val_list: '\n'.join([
 
 
 with open('data_structures.js') as fh: dscode = fh.read()
-with open('basic.js') as fh: jscode = fh.read()
+with open('data_viewer.js') as fh: jscode = fh.read()
 with open('basic.css') as fh: csscode = fh.read()
 
 head = head( concat(
@@ -40,53 +38,69 @@ head = head( concat(
     script(' ', 
         ["type","text/javascript"],
         ["src","http://code.jquery.com/jquery-2.0.2.js"]),
+
+#    script(' ', 
+#        ["src","http://d3js.org/d3.v3.min.js"],
+#        ["charset","utf-8"],
+#        ),
+
     script(dscode,  ["type","text/javascript"]),
     script(jscode,  ["type","text/javascript"]),
     style(csscode,  ["type","text/css"]),
-    
 ))
 
 
 
 users = 'smith jones'.split()
 casenames = 'case1 case2 case3 case4 case5'.split() 
+datasets = 'fred1 fred2 fred3'.split()
 user_options = op_tag_list('user', users)
 case_options = op_tag_list('case', casenames)
+dataset_options = op_tag_list('data set', datasets)
 
 
-columns = 'ticket date docid xxxid'.split()
-column_checks = checkbox_list('col_check', columns) # for column subsetting.
-column_radio = radio_list('col_radio', columns) # for filtering on column values
+#columns = 'ticket date docid xxxid'.split()
+#column_checks = checkbox_list('col_check', columns) # for column subsetting.
+#column_radio = radio_list('col_radio', columns) # for filtering on column values
 column_radio = radio('col_radio', 'any') # for filtering on column values
 
 
 
-
-
-
 table1 = table(concat(
-    tr(concat(
-        td('Case'),
-        td(select(case_options, ["id","da_case"])),
-        td(''),
-        )) ,
-    tr(concat(
-        td('User'),
-        td(select(user_options, ["id","da_user"])),
-        td(''),
-        )) ,
+
+#    tr(concat(
+#        td('Case'),
+#        td(select(case_options, ["id","da_case"])),
+#        td(''),
+#        )) ,
+#
+#    tr(concat(
+#        td('User'),
+#        td(select(user_options, ["id","da_user"])),
+#        td(''),
+#        )) ,
+#
 #    tr(concat(
 #        td('Columns'),
 #        td(select(column_options, [["id","da_cols"]])),
 #        td(''),
 #        )) ,
+
+    tr(concat(
+        td('Data'),
+        td(select(dataset_options, ["id","data_options"])),
+        td(''),
+        )) ,
+
+
     tr(concat(
         td(''),
         td(input('', ["type","submit"], ["value","Go!"],
-["id","submit"])),
+            ["id","submitA"])),
         td(''),
         )) ,
-        ))
+
+        )) # end table1
 
 
 sort_controls = concat(p('Sort/Filter Controls'),
@@ -129,18 +143,28 @@ sort_controls = concat(p('Sort/Filter Controls'),
         ) # sort_controls
 
 
-
-body = body( concat(
+inputs = div(concat(
     h1('Data Viewer'),
     form( table1, ["id","da_form"], ["method","post"] ),
-    hr(),
     div( sort_controls,  ["id","div_sort"], ["class","hidden"] ),
-    hr(),
+    ), ['class', 'output'])
+
+graphic = svg('', ['class', 'output'])
+
+body = body(concat(
     div(concat(
-        pre( 'output area', ['class', 'output1']),
-        pre( 'secondary output area', ['class', 'output2'])
-    ))
-    ,
+        inputs,
+        graphic,
+    ), ['class', 'foo']),
+
+    hr(),
+    hr(),
+
+    div(concat(
+        pre( 'output area', ['class', 'output']),
+        pre('secondary output area', ['class', 'output']),
+
+    ), ['class', 'output'])
 
 ))
 
