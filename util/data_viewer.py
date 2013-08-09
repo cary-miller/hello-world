@@ -29,7 +29,11 @@ radio_list = lambda name, val_list: '\n'.join([
     radio(name, v) for v in val_list])    
 
 
-with open('data_structures.js') as fh: dscode = fh.read()
+def fread(fname):
+    with open('data_structures.js') as fh: 
+        return fh.read()
+
+dscode = fread('data_structures.js')
 with open('data_viewer.js') as fh: jscode = fh.read()
 with open('basic.css') as fh: csscode = fh.read()
 
@@ -38,12 +42,10 @@ head = head( concat(
     script(' ', 
         ["type","text/javascript"],
         ["src","http://code.jquery.com/jquery-2.0.2.js"]),
-
-#    script(' ', 
-#        ["src","http://d3js.org/d3.v3.min.js"],
-#        ["charset","utf-8"],
-#        ),
-
+    script(' ', 
+        ["src","http://d3js.org/d3.v3.min.js"],
+        ["charset","utf-8"],
+        ),
     script(dscode,  ["type","text/javascript"]),
     script(jscode,  ["type","text/javascript"]),
     style(csscode,  ["type","text/css"]),
@@ -161,8 +163,8 @@ body = body(concat(
     hr(),
 
     div(concat(
-        pre( 'output area', ['class', 'output']),
-        pre('secondary output area', ['class', 'output']),
+        pre( 'output area', ['class', 'output1']),
+        pre('secondary output area', ['class', 'output2']),
 
     ), ['class', 'output'])
 

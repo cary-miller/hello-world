@@ -1,6 +1,125 @@
 
 data_hx = [];
 
+
+function new_circle(ob, color){
+    // Adds a new circle without deleting old ones. //
+    // TODO expand to append a new <g> ??
+    d3.selectAll("svg")
+    .append("circle")
+    //        .transition().duration(3*1000)
+    // Would like to have circles fade-in //
+        .attr("cx", ob.x)
+        .attr("cy", ob.y)
+        .attr("r", ob.r)
+        .style("fill", color)
+    ;   
+};
+
+function new_circles(n, color){
+    for (var i=0; i<n; i++){
+        new_circle(random_circle_data(1)[0], color);
+    }
+};
+
+
+/* Replaces existing circles */
+/* How to add circles without removing existing circles?? */
+function random_circles(n, color){
+    d3.selectAll("circle").remove();
+    d3.selectAll("svg")
+    .selectAll("circle")
+    .data(random_circle_data(n))
+    .enter()
+    .append("circle")
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; })
+        .attr("r", function(d) { return d.r; })
+        .style("fill", color)
+    ;   
+};
+
+/*
+ *
+ * 1. Can add one circle at a time using new_circle without affecting
+ * existing elements.
+ *
+ * 2. Can add a bunch at once but requires removing all existing ones
+ * first.
+ *
+ * 3. Now can add multiples.
+ *
+ */
+
+
+function nc(){
+    new_circle(90, 90, 11, 'steelblue');
+};
+    
+    
+function random_circle_data(n){ 
+    /* random data for circles */
+    n = n || d3.selectAll("circle")[0].length
+    res = []; 
+    for (var i=0; i<n; i++){
+        x_scale = 1000
+        x_scale = 500
+        x_scale = 300
+        y_scale = 200 
+        x = x_scale*Math.random() + 30
+        y = y_scale*Math.random() + 30
+        g = 10  
+        g = 30  
+        r = g*Math.random()
+        ob = {'x':x, 'y':y, 'r':r};
+        res.push(ob);
+    };  
+    return (res);
+};
+
+function scramble_circles(){
+    d3.selectAll("circle")
+    .data(random_circle_data())
+    .transition().duration(1000)
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; })
+        .attr("r", function(d) { return d.r; })
+        ;   
+};
+
+function pop_circles(){
+    /* Circles expand-expand-expand-disappear */
+    d3.selectAll("circle")
+    .transition().duration(3*1000)
+        .style("opacity", 0)
+        .attr("r", function() { return 444; })
+};
+
+function throb_circles(){
+    /* Circles expand and then return to normal */
+    radii = attribute_of_all('circle', 'r');
+
+    d3.selectAll("circle")
+    .data(radii)
+    .transition().duration(1000)
+        .attr("r", function(r) { return 3*r; })
+    .transition().duration(1000)
+        .attr("r", function(r) { return r; })
+};
+
+
+
+function balls(){
+    cy = 44;
+    cx = 144;
+    r = 22;
+    fill = 'steelblue';
+};
+
+
+
+
+
 function tag(name, content){
     return "<"+name+">"+content+"</"+name+">";
 };
@@ -136,6 +255,11 @@ function show_control1(event){
 
 
 
+// TODO
+// How to be a proxy for fred ????? //
+// How to be a proxy for fred ????? //
+// How to be a proxy for fred ????? //
+// How to be a proxy for fred ????? //
 function get_json_result(event){
     event.preventDefault(); // !!!!!!! prevent page reload !!!!!!! //
     thing = $.ajax({
@@ -194,7 +318,7 @@ $(document).ready(function(){
     // NOTE we could use something like yoohoo to refresh
     //      basic data q min.
     // !!!!!!!!!!!!!!!!!!!!!!!
-    $('#submit').click( function(event){get_json_result(event);} );
+    $('#submitA').click( function(event){get_json_result(event);} );
     $('#filter_submit').click( function(event){go_filter(event);} );
     $('#prev_result').click( function(event){prev_result(event);} );
     $('#to_control1').click( function(event){show_control1(event);});
