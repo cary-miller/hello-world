@@ -1,5 +1,131 @@
-
 data_hx = [];
+
+
+
+function new_bar(ob){
+    d3.selectAll("svg")
+    .append("rect")
+        .attr("class", 'barchart')
+        .attr("x", ob.x)
+        .attr("y", ob.y)
+        .attr("width", ob.width)
+        .attr("height", ob.height)
+    ;   
+};
+
+function new_ellipse(){
+    d3.selectAll("svg")
+    .append("ellipse")
+        .attr("rx", 22)
+        .attr("ry", 11)
+        .attr("id", 'eproto')
+        .attr("fill", 'none')
+        .attr("stroke", 'black')
+        .attr("stroke-width", 1)
+    ;   
+};
+
+
+
+function new_text(id){
+    d3.selectAll("svg")
+        .append("text")
+        .attr("id", id)
+        .text('hello');
+};
+
+//        .attr("transform", "translate(40,40) rotate(-90) ");
+//        .attr("x", 0)
+//        .attr("y", 0)
+
+function cloning(){
+    new_text('t1');
+    new_text('t2');
+    d3.selectAll("svg")
+        .append("use")
+        .attr("xlink:href", "#t1")
+        .attr("transform", "translate(40,40) rotate(30) ");
+    d3.selectAll("svg")
+        .append("use")
+        .attr("xlink:href", "#t1")
+        .attr("transform", "translate(40,40) rotate(60) ");
+};
+
+
+function cloning(){
+    new_ellipse();
+    d3.selectAll("svg")
+        .append("use")
+        .attr("xlink:href", "#eproto")
+        .attr("transform", "translate(40,40) rotate(30) ");
+    d3.selectAll("svg")
+        .append("use")
+        .attr("xlink:href", "#eproto")
+        .attr("transform", "translate(40,40) rotate(60) ");
+};
+
+
+rdata = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+function cloning(){
+    new_ellipse();
+    d3.selectAll("svg").selectAll("use")
+        .data(rdata)
+        .enter()
+        .append("use")
+        .attr("xlink:href", "#eproto")
+        .attr("transform", function(d){
+            return "translate(40,40) rotate("+d+")"});
+};
+ 
+
+function new_bar_w_label(ob){
+    g = d3.selectAll("svg").append("g");
+
+    g.append("rect")
+        .attr("class", 'barchart')
+        .attr("x", ob.x)
+        .attr("y", ob.y)
+        .attr("width", ob.width)
+        .attr("height", ob.height)
+    ;   
+    xt = ob.x + 11; 
+    g.append("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("text-anchor", "start")
+        .text(ob.label)
+        .attr("transform", "translate("+xt+",40) rotate(-90) ");
+    ;   
+    g.attr("transform", "scale(1,1)");
+
+};
+
+
+thing = {x:33, y:44, width:22, height:66, fill:'blue', label:'foo'}
+ys = [11, 22, 44, 88, 22, 11, 55];
+y2 = [
+    {label:'xaba', height:11},
+    {label:'abaca', height:11},
+    {label:'bacaba', height:22},
+    {label:'catanga', height:44},
+    {label:'danaga', height:33},
+    {label:'eeeeeeek', height:55}
+]
+
+
+
+function barchart(data){
+    for (i=0; i<data.length; i++){
+        xfunc = function(i){return i*22};
+        thing1 = data[i];
+        console.log(thing1.label);
+//        ob = {x:xfunc(i), y:44, width:22, height:data[i], fill:'blue', label:'foo'};
+        ob = {x:xfunc(i), y:44, width:22, height:thing1.height, fill:'blue', label:thing1.label};
+        new_bar_w_label(ob);
+    }
+};
+
+
 
 
 function new_circle(ob, color){
