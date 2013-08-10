@@ -65,18 +65,74 @@ function cloning(){
 };
 
 
-rdata = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
-function cloning(){
-    new_ellipse();
-    d3.selectAll("svg").selectAll("use")
-        .data(rdata)
+rdata1 = [0, 30, 60, 90, 120, 150];
+rdata2 = [0, 45, 90, 135];
+rdata3 = [0, 60, 120];
+
+function cloning(x, y, data){
+    g = d3.selectAll("svg").append("g");
+    g.selectAll("use")
+        .data(data)
         .enter()
         .append("use")
         .attr("xlink:href", "#eproto")
         .attr("transform", function(d){
-            return "translate(40,40) rotate("+d+")"});
+            return "rotate("+d+")"});
+//        .attr("transform", function(d){
+    //        return "translate("+x+","+y+") rotate("+d+")"});
 };
- 
+
+
+
+
+function move(ob, x, y, d){
+    ob
+//    .transition().duration(1000)
+    .attr("transform", function(d){
+        return "translate("+x+","+y+") rotate("+d+", "+x+", "+y+")"});
+};
+
+
+function m2(){
+    new_ellipse();
+    cloning(55, 55, rdata2);
+    d3.selectAll('g')
+        .transition().duration(4424)
+        .attr("transform", "translate(44, 44)");
+};
+function m3(r){
+    d3.selectAll('g')
+    .transition().duration(4424)
+        .attr("transform", "rotate("+r+", 44, 44)  translate(44, 44)");
+};
+function m4(){
+    m3(90);
+    m3(180);
+    m3(270);
+    m3(0);
+};
+function m5(t){
+    t = t || 1111;
+    d3.selectAll('g')
+    .transition().duration(t)
+        .attr("transform", "rotate(90, 44, 44)  translate(44, 44)")
+    .transition().duration(t)
+        .attr("transform", "rotate(180, 44, 44)  translate(44, 44)")
+    .transition().duration(t)
+        .attr("transform", "rotate(270, 44, 44)  translate(44, 44)")
+    .transition().duration(t)
+        .attr("transform", "rotate(360, 44, 44)  translate(44, 44)")
+;
+};
+
+t=1111;
+function m6(){
+    m5(t);
+};
+
+
+
+
 
 function new_bar_w_label(ob){
     g = d3.selectAll("svg").append("g");
@@ -440,6 +496,7 @@ $(document).ready(function(){
 //    import_code(event);  // data structures //
     yoohoo(event);
     setInterval(yoohoo , 1000*60); // every 1 min.
+    setInterval(m6 , t*4); //  msec
     // !!!!!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!
     // NOTE we could use something like yoohoo to refresh
     //      basic data q min.
