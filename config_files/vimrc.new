@@ -1,0 +1,160 @@
+set nocompatible
+"Helps force plugins to load correctly when it is turned back on below.
+"filetype off
+
+" todo Load plugins here (pathogen or vundle)
+
+"set syntax on
+
+" For plugins to load correctly
+"filetype plugin indent on
+
+"todo pick a leader key
+"let mapleader = ","
+let mapleader = ";"
+
+" security
+set modelines=0
+
+set nu
+set ruler
+
+" Whitespace
+set wrap
+set textwidth=79
+set formatoptions=tcqrn1
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set expandtab
+set noshiftround
+
+" Cursor motion
+set scrolloff=3
+set backspace=indent,eol,start
+set matchpairs+=<:> " use % to jump between pairs
+runtime! macros/matchit.vim
+
+" Move up/down editor lines
+nnoremap j gj
+nnoremap k gk
+
+" Allow hidden buffers
+set hidden
+
+" Rendering
+set ttyfast
+
+" Status bar
+set laststatus=2
+
+
+"st line
+set showmode
+set showcmd
+
+" Searching
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set showmatch
+map <leader><space> :let @/=''<cr> " clear search
+
+" Remap help key.
+inoremap <F1> <ESC>:set invfullscreen<CR>a
+nnoremap <F1> :set invfullscreen<CR>
+vnoremap <F1> :set invfullscreen<CR>
+
+
+" Formatting
+map <leader>q gqip
+
+
+set backspace=2
+set autoindent
+set nobackup
+colorscheme elflord
+colorscheme desert
+syntax on
+
+" reopen a file at last position
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+      \| exe "normal! g`\"" | endif
+endif
+
+" highlight column 80
+set colorcolumn=80
+highlight ColorColumn ctermbg=yellow
+
+
+set showcmd  " rt leader
+
+" mapping the F keys on the chromebook does not work so well.  The <leader> key
+" comes to the rescue
+"bnext
+"map <S-F10> :bn<CR>  
+map <leader><F10> :bn<CR>  
+" nice !
+" nice !
+map <leader>q :q<CR>  
+map <leader>w :w<CR>  
+map <leader>wq :wq<CR>  
+map <leader>n :bn<CR>  
+map <leader>p :bp<CR>  
+map <leader>c <ESC>0i#<ESC><CR>  
+" nice !
+" nice !
+" beats my old shortcuts like below.
+"map <Crtl>p :bn<CR>  
+"map! <F10> :bnext
+"noremap <F10> :bnext
+map <leader>ct :echo 'Current time is ' . strftime('%c')<CR>
+"map 
+
+
+" plugins
+" syntastic
+"
+" to install vim-plug
+" curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+call plug#begin('~/.vim/plugged')
+Plug 'tpope/vim-sensible'
+Plug 'scrooloose/nerdtree'
+Plug 'https://github.com/vim-scripts/taglist.vim'
+Plug 'https://github.com/ervandew/supertab'
+Plug 'https://github.com/vim-scripts/TaskList.vim'
+Plug 'https://github.com/vim-syntastic/syntastic'
+"Plug ''
+call plug#end()
+" to install the above
+" :so %
+" :PlugInstall 
+"
+" Installing tasklist plugin failed.  Workaround ==
+"so ~/.vim/plugged/TaskList.vim/plugin/tasklist.vim
+
+let g:syntastic_python_checkers = ['pyflakes', 'python']
+let g:syntastic_aggregate_error = 1
+
+
+"let g:Tlist_GainFocus_On_ToggleOpen = 1
+let g:Tlist_Exit_OnlyWindow = 1
+
+nnoremap <silent> <F8> :TlistToggle <CR>
+map <leader>tt :TlistToggle<CR>        
+map <leader>to :TlistToggle<CR>        
+map <leader>ww <C-W>w
+
+map td i# TODO: 
+ab todo # TODO: 
+
+
+" q: is very handy for repeating recent commands.
+" https://gist.github.com/awidegreen/3854277
+"http://stackoverflow.com/questions/1218390/what-is-your-most-productive-shortcut-with-vim
+" exuberant ctags
+" nerdTree
+" supertab
+" syntastic
