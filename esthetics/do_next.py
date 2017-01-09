@@ -5,6 +5,7 @@ import pandas as pd
 from collections import namedtuple
 from datetime import datetime
 from get_data import dataf
+import numpy as np
 
 
 exec(open('get_data.py').read())
@@ -111,5 +112,98 @@ vcheck = make_checker("length")
 pair = ("v3.1", .33)
 vcheck(dataf, *pair)
 dataf.head()
+
+(names, target_values) = '''
+v2 v4.1 v4.2 v3.1 v3.2 v5.1 v5.2 v5.3 v5.4 h2 h4.1 h4.2 h3.1 h3.2 h5.1 h5.2 h5.3 h5.4
+0.5 0.25 0.75 0.333 0.667 0.2 0.4 0.6 0.8 0.5 0.25 0.75 0.333 0.667 0.2 0.4 0.6 0.8
+'''.split('\n')[1:-1]
+names = names.split()
+target_values = [float(val) for val in target_values.split()]
+mapp = zip(names, target_values)
+mapp = list(zip(names, target_values))
+
+
+gap = 0.01
+
+def check_row(row):
+    bad = []
+    (index, row_series) = row
+#    print(index)
+    for (col_name, target_value) in mapp:
+        if col_name.startswith('v'):
+            denom = row_series['length']
+        else:
+            denom = row_series['height']
+        actual_value = row_series[col_name] / denom
+        if np.isnan(actual_value):  # ok
+            continue
+#        if target_value == actual_value: flag = 'ok'
+        if abs(target_value - actual_value) < gap:
+            flag = 'ok'
+        else:
+            flag =  actual_value
+        if flag != 'ok':
+            bad.append((col_name, target_value, flag))
+#            print(col_name, target_value, flag)
+    if bad:
+        return (index, bad)
+
+
+good = []
+bbad = []
+for row in dataf.iterrows():
+    bad = check_row(row)
+    if bad:
+        bbad.append(bad)
+    else:
+        good.append(row)
+
+
+for row in good:
+    (index, row_series) = row
+
+good_indices = [row[0] for row in good]
+good_series = [row[1] for row in good]
+vs = [rs['v2'] for rs in good_series]
+hs = [rs['h2'] for rs in good_series]
+assert all(vs) == all(hs) == True
+
+
+q = '4.1 4.2'.split()
+t = '3.1 3.2'.split()
+f = '5.1 5.4'.split()
+tupify = lambda char, lst: tuple(char + thing for thing in lst)
+
+
+dct = dict(
+    vertical = dict(
+        quarter = tupify('v', q),
+        third = tupify('v', t),
+        fifth = tupify('v', f),
+        )
+    ,
+    horizontal = dict(
+        quarter = tupify('h', q),
+        third = tupify('h', t),
+        fifth = tupify('h', f),
+    )
+)
+
+
+res = {}
+gi, rs = good[0]
+for thing in good:
+    gi, rs = thing
+#    print(gi)
+    d = dict()
+    for vh in dct:
+        d[vh] = dict()
+        for key in dct[vh]:
+            (a, b) = dct[vh][key]
+            dslice = rs[a:b]
+            dah = not any([np.isnan(thing) for thing in dslice])
+            d[vh][key] = dah
+    res[gi] = d
+
 
 
